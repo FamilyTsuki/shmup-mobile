@@ -46,3 +46,10 @@ const config: Types.Core.GameConfig = {
 document.addEventListener('DOMContentLoaded', () => {
     new Game(config);
 });
+
+// Installable and playable offline. Skipped in dev so the service worker never serves stale modules.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((error) => console.error('Service worker registration failed', error));
+    });
+}
