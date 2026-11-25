@@ -5,6 +5,7 @@ import Enemy from "../entities/Enemy.ts";
 import Player from "../entities/Player.ts";
 import SinusoidalEnemy from "../entities/SinusoidalEnemy.ts";
 import type {SinusoidalEnemyData} from "../gameData/SinusoidalEnemyData.ts";
+import type {IInputSource} from "../input/InputState.ts";
 import GroupUtils from "../utils/GroupUtils.ts";
 import GameConstants from "../GameConstants.ts";
 import RegistryConstants from "../RegistryConstants.ts";
@@ -45,12 +46,12 @@ export default class EntityManager extends Plugins.ScenePlugin {
         console.log("[EntityManager] Destroyed");
     }
 
-    public initAndSpawnPlayer(): Player {
+    public initAndSpawnPlayer(input: IInputSource): Player {
         this._playerBullets = this.scene!.physics.add.group(this.bulletGroupConfig);
         GroupUtils.populate(64, this._playerBullets);
 
         this._player = new Player(this.scene!, this.scene!.cameras.main.centerX, this.scene!.cameras.main.height - 128);
-        this._player.init(this._playerBullets);
+        this._player.init(this._playerBullets, input);
 
         console.log("[EntityManager] Player spawned");
 

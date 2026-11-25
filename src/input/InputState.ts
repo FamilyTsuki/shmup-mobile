@@ -1,0 +1,21 @@
+/**
+ * Snapshot of one player's intent for a frame. Plain data so it can later be sent over the network.
+ */
+export type InputState = {
+    /** Analog horizontal axis in [-1, 1], scaled by the ship speed */
+    moveX: number;
+    /** Direct horizontal displacement in game pixels since the last poll (finger drag) */
+    dragX: number;
+    /** Rotation axis in [-1, 1] */
+    rotate: number;
+    fire: boolean;
+};
+
+export interface IInputSource {
+    poll(): InputState;
+    destroy(): void;
+}
+
+export function emptyInputState(): InputState {
+    return {moveX: 0, dragX: 0, rotate: 0, fire: false};
+}

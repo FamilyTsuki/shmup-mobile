@@ -1,0 +1,31 @@
+import {Scene} from "phaser";
+import {emptyInputState, IInputSource, InputState} from "./InputState.ts";
+
+export default class KeyboardInput implements IInputSource {
+    private readonly _keys?: Phaser.Types.Input.Keyboard.CursorKeys;
+
+    constructor(scene: Scene) {
+        this._keys = scene.input.keyboard?.createCursorKeys();
+    }
+
+    public poll(): InputState {
+        const state = emptyInputState();
+        if (!this._keys)
+            return state;
+
+        const axis = (this._keys.right.isDown ? 1 : 0) - (this._keys.left.isDown ? 1 : 0);
+        // Hold SHIFT to rotate the ship instead of moving it
+        if (this._keys.shift.isDown)
+            state.rotate = axis;
+        else
+            state.moveX = axis;
+
+        state.fire = this._keys.space.isDown;
+
+        return state;
+    }
+
+    public destroy() {
+        // Nothing to do: the scene keyboard plugin destroys its keys when the scene shuts down
+    }
+}

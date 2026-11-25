@@ -1,10 +1,11 @@
-import {Scene, GameObjects} from 'phaser';
+import {GameObjects, Input, Scene, Scenes} from 'phaser';
 import Health from "../components/Health.ts";
 import RegistryConstants from "../RegistryConstants.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import SaveConstants from "../SaveConstants.ts";
 import EntityManager from "../managers/EntityManager.ts";
 import GameConstants from "../GameConstants.ts";
+import LocalInput from "../input/LocalInput.ts";
 
 export default class MainGameScene extends Scene {
     private bg: GameObjects.TileSprite;
@@ -32,7 +33,8 @@ export default class MainGameScene extends Scene {
             console.error('EntityManager plugin not found');
         }
 
-        const player = this.entityManager.initAndSpawnPlayer();
+        const input = new LocalInput(this);
+        const player = this.entityManager.initAndSpawnPlayer(input);
         player.getComponent(Health)?.once(Health.DEATH_EVENT, () => {
             // Hide the player and let its explosion play before showing the game over screen
             player.disableBody(true, true);
@@ -42,10 +44,12 @@ export default class MainGameScene extends Scene {
         this.entityManager.initGroupCollisions();
 
         if (this.input.keyboard) {
-            this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R).on('down', () => this.scene.restart());
-        } else {
-            console.error('No keyboard input');
+            this.input.keyboard.addKey(Input.Keyboard.KeyCodes.R).on('down', () => this.scene.restart());
         }
+
+        this.events.once(Scenes.Events.SHUTDOWN, () => {
+            input.destroy();
+        });
 
         this.registry.set(RegistryConstants.Keys.PLAYER_SCORE, 0);
 
