@@ -1,5 +1,6 @@
 import {Core, GameObjects, Input, Scene, Scenes} from 'phaser';
 import Health from "../components/Health.ts";
+import Boss from "../entities/Boss.ts";
 import RegistryConstants from "../RegistryConstants.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import SaveConstants from "../SaveConstants.ts";
@@ -24,6 +25,7 @@ export type RunResultData = {
 export default class MainGameScene extends Scene {
     private static readonly END_DELAY_MS: number = 1000;
     private static readonly VICTORY_DELAY_MS: number = 2500;
+    private static readonly BOSS_WARNING_MS: number = 2500;
 
     private bg: GameObjects.TileSprite;
     private planet: GameObjects.Image;
@@ -50,6 +52,7 @@ export default class MainGameScene extends Scene {
     create() {
         this.saveManager.load();
         this.registry.set(RegistryConstants.Keys.PLAYER_SCORE, 0);
+        this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, -1);
 
         const bgMargin = 512;
         this.bg = this.add.tileSprite(this.cameras.main.centerX, this.cameras.main.centerY,
@@ -74,8 +77,9 @@ export default class MainGameScene extends Scene {
             this.showBanner(`VAGUE ${index + 1}/${count}`);
         });
         this._waveManager.on(WaveManager.ALL_WAVES_CLEARED_EVENT, () => {
-            this.showBanner('NIVEAU TERMINÉ');
-            this.endRun(true, MainGameScene.VICTORY_DELAY_MS);
+            this.showBanner('ALERTE\nBOSS EN APPROCHE');
+            this.cameras.main.flash(300, 120, 0, 0);
+            this.time.delayedCall(MainGameScene.BOSS_WARNING_MS, () => this.spawnBoss());
         });
 
         if (this.input.keyboard) {
@@ -91,11 +95,35 @@ export default class MainGameScene extends Scene {
             this.game.events.off(Core.Events.HIDDEN, this.pauseGame, this);
             this.game.events.off(GameConstants.Events.PAUSE_REQUESTED_EVENT, this.pauseGame, this);
             this._waveManager.removeAllListeners();
+            this.events.off(Boss.PHASE_CHANGED_EVENT);
+            this.events.off(Boss.DEFEATED_EVENT);
             input.destroy();
         });
 
         this.showBanner(`NIVEAU ${this._levelIndex + 1}\n${this._level.name}`);
         this.time.delayedCall(MainGameScene.VICTORY_DELAY_MS, () => this._waveManager.start());
+    }
+
+    private spawnBoss() {
+        const boss = this.entityManager.spawnBoss(this._level.boss, this._level.difficulty);
+        this.registry.set(RegistryConstants.Keys.BOSS_NAME, boss.bossData.name);
+        this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, 1);
+
+        boss.getComponent(Health)?.on(Health.CHANGE_EVENT, () => {
+            this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, boss.healthRatio);
+        });
+        this.events.on(Boss.PHASE_CHANGED_EVENT, (phaseIndex: number) => {
+            if (phaseIndex > 0) {
+                this.showBanner(`PHASE ${phaseIndex + 1}`);
+                this.cameras.main.shake(300, 0.015);
+            }
+        });
+        this.events.once(Boss.DEFEATED_EVENT, () => {
+            this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, -1);
+            this.registry.inc(RegistryConstants.Keys.PLAYER_SCORE, boss.bossData.score);
+            this.showBanner('NIVEAU TERMINÉ');
+            this.endRun(true, MainGameScene.VICTORY_DELAY_MS);
+        });
     }
 
     private showBanner(text: string) {

@@ -46,7 +46,11 @@ const config: Types.Core.GameConfig = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    new Game(config);
+    const game = new Game(config);
+
+    // Lets the browser console inspect and drive the game while developing
+    if (import.meta.env.DEV)
+        (window as unknown as { game: Game }).game = game;
 });
 
 // Installable and playable offline. Skipped in dev so the service worker never serves stale modules.

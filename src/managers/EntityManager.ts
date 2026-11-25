@@ -1,8 +1,10 @@
 import {GameObjects, Plugins, Physics, Scene, Scenes} from "phaser";
 import Health from "../components/Health.ts";
+import Boss from "../entities/Boss.ts";
 import Bullet from "../entities/Bullet.ts";
 import Enemy from "../entities/Enemy.ts";
 import Player from "../entities/Player.ts";
+import type {BossesData} from "../gameData/BossData.ts";
 import type {EnemiesData} from "../gameData/EnemyData.ts";
 import type {IInputSource} from "../input/InputState.ts";
 import GroupUtils from "../utils/GroupUtils.ts";
@@ -111,6 +113,26 @@ export default class EntityManager extends Plugins.ScenePlugin {
         this.game!.events.emit(GameConstants.Events.ENEMY_SPAWNED_EVENT, enemy);
 
         return enemy;
+    }
+
+    public spawnBoss(bossKey: string, difficulty: number): Boss {
+        const data = (this.scene!.cache.json.get(GameConstants.DataKeys.BOSSES) as BossesData)[bossKey];
+        const boss = new Boss(this.scene!, data, this._enemyBullets, this._player, difficulty);
+
+        this.scene!.physics.add.overlap(this._playerBullets, boss, (_boss, bullet) => {
+            (bullet as Bullet).disable();
+            boss.getComponent(Health)?.damage((bullet as Bullet).damage);
+        });
+        this.scene!.physics.add.overlap(this._player, boss, () => {
+            this._player.getComponent(Health)?.damage(1);
+            this.scene?.cameras.main.shake(100, 0.03);
+        });
+
+        const onSummon = (enemyType: string, x: number, y: number) => this.spawnEnemy(enemyType, x, y, difficulty);
+        this.scene!.events.on(Boss.SUMMON_EVENT, onSummon);
+        boss.once(Phaser.GameObjects.Events.DESTROY, () => this.scene?.events.off(Boss.SUMMON_EVENT, onSummon));
+
+        return boss;
     }
 
     public activeEnemyCount(): number {
