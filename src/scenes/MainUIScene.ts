@@ -9,6 +9,9 @@ export default class MainUIScene extends Scene {
     private _playerHealthText: GameObjects.BitmapText;
     private _scoreText: GameObjects.BitmapText;
     private _bannerText: GameObjects.Text;
+    private _comboText: GameObjects.Text;
+    private _creditsText: GameObjects.Text;
+    private _bombButton: Button;
     private _bossBar: GameObjects.Container;
     private _bossBarFill: GameObjects.Rectangle;
     private _bossNameText: GameObjects.Text;
@@ -23,12 +26,18 @@ export default class MainUIScene extends Scene {
         this.game.events.on(GameConstants.Events.BANNER_EVENT, this.showBanner, this);
         this.registry.events.on(RegistryConstants.Events.PLAYER_SCORE_CHANGE, this.onPlayerScoreChanged, this);
         this.registry.events.on(RegistryConstants.Events.BOSS_HEALTH_CHANGE, this.onBossHealthChanged, this);
+        this.registry.events.on(RegistryConstants.Events.COMBO_CHANGE, this.onComboChanged, this);
+        this.registry.events.on(RegistryConstants.Events.RUN_CREDITS_CHANGE, this.onCreditsChanged, this);
+        this.registry.events.on(RegistryConstants.Events.BOMBS_CHANGE, this.onBombsChanged, this);
 
         this.events.once(Scenes.Events.SHUTDOWN, () => {
             this.game.events.off(GameConstants.Events.PLAYER_SPAWNED_EVENT, this.onPlayerSpawned, this);
             this.game.events.off(GameConstants.Events.BANNER_EVENT, this.showBanner, this);
             this.registry.events.off(RegistryConstants.Events.PLAYER_SCORE_CHANGE, this.onPlayerScoreChanged, this);
             this.registry.events.off(RegistryConstants.Events.BOSS_HEALTH_CHANGE, this.onBossHealthChanged, this);
+            this.registry.events.off(RegistryConstants.Events.COMBO_CHANGE, this.onComboChanged, this);
+            this.registry.events.off(RegistryConstants.Events.RUN_CREDITS_CHANGE, this.onCreditsChanged, this);
+            this.registry.events.off(RegistryConstants.Events.BOMBS_CHANGE, this.onBombsChanged, this);
         }, this);
     }
 
@@ -54,11 +63,38 @@ export default class MainUIScene extends Scene {
             {fontSize: '88px', color: '#fff', fontFamily: 'future', align: 'center', stroke: '#000', strokeThickness: 10})
             .setOrigin(0.5).setAlpha(0);
 
+        this._creditsText = this.add.text(this.scale.width - 64, 196, '$ 0',
+            {fontSize: '44px', color: '#ffd166', fontFamily: 'future'}).setOrigin(1, 0);
+        this._comboText = this.add.text(64, 196, '',
+            {fontSize: '52px', color: '#ff8c42', fontFamily: 'future', stroke: '#000', strokeThickness: 6});
+
+        this._bombButton = new Button(this, this.scale.width - 130, this.scale.height - 300, 'B',
+            () => this.game.events.emit(GameConstants.Events.BOMB_REQUESTED_EVENT),
+            {width: 170, height: 170, fontSize: 52, fillColor: 0x5a189a});
+        this.onBombsChanged(null, Number(this.registry.get(RegistryConstants.Keys.BOMBS) ?? 0));
+
         this.createBossBar();
 
         this.scene.bringToTop();
 
         console.log("MainUIScene created");
+    }
+
+    private onComboChanged(_: any, multiplier: number) {
+        this._comboText.setText(multiplier > 1 ? `COMBO X${multiplier}` : '');
+        if (multiplier > 1) {
+            this.tweens.killTweensOf(this._comboText);
+            this._comboText.setScale(1.4);
+            this.tweens.add({targets: this._comboText, scale: 1, duration: 200, ease: 'Back.easeOut'});
+        }
+    }
+
+    private onCreditsChanged(_: any, credits: number) {
+        this._creditsText.setText(`$ ${credits}`);
+    }
+
+    private onBombsChanged(_: any, bombs: number) {
+        this._bombButton.setText(`B\n${bombs}`).setEnabled(bombs > 0);
     }
 
     private createBossBar() {

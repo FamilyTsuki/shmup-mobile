@@ -1,0 +1,18 @@
+{
+    "base": {
+        "fireDelayMs": 420,
+        "damage": 1,
+        "bulletCount": 1,
+        "maxHealth": 3,
+        "magnetRadius": 180,
+        "bombs": 1
+    },
+    "upgrades": {
+        "damage":   {"name": "Dégâts",   "description": "+1 dégât par tir",             "stat": "damage",       "perLevel": 1,     "maxLevel": 4, "baseCost": 40, "costGrowth": 1.6},
+        "fireRate": {"name": "Cadence",  "description": "Tire 12% plus vite",           "stat": "fireDelayMs",  "perLevel": -0.12, "maxLevel": 5, "baseCost": 30, "costGrowth": 1.5},
+        "cannons":  {"name": "Canons",   "description": "+1 projectile par tir",        "stat": "bulletCount",  "perLevel": 1,     "maxLevel": 3, "baseCost": 90, "costGrowth": 2},
+        "health":   {"name": "Blindage", "description": "+1 vie maximum",               "stat": "maxHealth",    "perLevel": 1,     "maxLevel": 3, "baseCost": 60, "costGrowth": 1.8},
+        "magnet":   {"name": "Aimant",   "description": "Attire les bonus de plus loin", "stat": "magnetRadius", "perLevel": 120,   "maxLevel": 3, "baseCost": 25, "costGrowth": 1.5},
+        "bombs":    {"name": "Bombes",   "description": "+1 bombe au départ",           "stat": "bombs",        "perLevel": 1,     "maxLevel": 2, "baseCost": 50, "costGrowth": 1.7}
+    }
+}

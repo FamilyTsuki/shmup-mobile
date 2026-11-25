@@ -5,6 +5,7 @@ export default class GameConstants {
         PAUSE_REQUESTED_EVENT: "pauseRequested",
         /** (text: string) big centered message on the HUD */
         BANNER_EVENT: "banner",
+        BOMB_REQUESTED_EVENT: "bombRequested",
     } as const);
 
     public static readonly SceneKeys = Object.freeze({
@@ -20,6 +21,8 @@ export default class GameConstants {
         ENEMIES: "enemies",
         LEVELS: "levels",
         BOSSES: "bosses",
+        POWER_UPS: "powerUps",
+        UPGRADES: "upgrades",
     } as const);
 
     public static readonly MAX_SCORE_DIGITS: number = 6;

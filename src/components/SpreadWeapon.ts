@@ -6,12 +6,17 @@ import Weapon from "./Weapon.ts";
 const FULL_CIRCLE_DEG: number = 360;
 
 export default class SpreadWeapon extends Weapon {
-    private readonly _bulletCount: number;
-    private readonly _spreadAngleDeg: number;
+    private _bulletCount: number;
+    private _spreadAngleDeg: number;
 
     constructor(bullets: Physics.Arcade.Group, bulletData: BulletData, bulletCount: number, spreadAngleDeg: number) {
         super(bullets, bulletData);
 
+        this._bulletCount = bulletCount;
+        this._spreadAngleDeg = spreadAngleDeg;
+    }
+
+    public setPattern(bulletCount: number, spreadAngleDeg: number) {
         this._bulletCount = bulletCount;
         this._spreadAngleDeg = spreadAngleDeg;
     }

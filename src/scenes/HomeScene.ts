@@ -1,10 +1,12 @@
 import {GameObjects, Loader} from "phaser";
 import GameConstants from "../GameConstants.ts";
 import SaveConstants from "../SaveConstants.ts";
+import RegistryConstants from "../RegistryConstants.ts";
 import GyroSensor from "../input/GyroSensor.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import Settings from "../managers/Settings.ts";
 import Button from "../ui/Button.ts";
+import TextureFactory from "../utils/TextureFactory.ts";
 
 export default class HomeScene extends Phaser.Scene {
     private static readonly FALLBACK_MESSAGE_MS: number = 1500;
@@ -54,12 +56,16 @@ export default class HomeScene extends Phaser.Scene {
         this.load.json(GameConstants.DataKeys.ENEMIES, 'Data/enemies.json');
         this.load.json(GameConstants.DataKeys.LEVELS, 'Data/levels.json');
         this.load.json(GameConstants.DataKeys.BOSSES, 'Data/bosses.json');
+        this.load.json(GameConstants.DataKeys.POWER_UPS, 'Data/powerups.json');
+        this.load.json(GameConstants.DataKeys.UPGRADES, 'Data/upgrades.json');
         this.load.audio('sfx_laser1', 'Sounds/sfx_laser1.ogg');
         this.load.audio('sfx_laser2', 'Sounds/sfx_laser2.ogg');
     }
 
     create() {
         this.saveManager.load();
+        TextureFactory.generate(this);
+        RegistryConstants.initRunKeys(this.registry);
 
         const centerX = this.scale.width / 2;
         this.add.text(centerX, 520, 'CODA SHMUP',
