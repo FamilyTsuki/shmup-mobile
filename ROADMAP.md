@@ -11,20 +11,21 @@ Branche de travail : `mobile-game` (créée depuis `eval`, qui reste intacte).
 - [x] `npm run dev-mobile` : HTTPS sur le réseau local (le gyroscope exige HTTPS). Vite accepte `game.tsuki-dev.fr` (tunnel).
 
 ## Phase 1 — Gyroscope
-- [ ] `GyroInput` : `DeviceOrientationEvent.gamma` → vitesse X, zone morte, lissage.
-- [ ] Permission iOS (`DeviceOrientationEvent.requestPermission()`) via un bouton sur l'écran d'accueil.
-- [ ] Calibration (angle neutre au lancement) + bouton recalibrer.
-- [ ] Options : sensibilité, inversion, mode tactile/gyro (sauvegardées via `SaveManager`). Repli tactile si pas de gyro.
+- [x] `GyroInput` : `DeviceOrientationEvent.gamma` → vitesse X, zone morte, lissage.
+- [x] Permission iOS (`DeviceOrientationEvent.requestPermission()`) via un bouton sur l'écran d'accueil.
+- [x] Calibration (angle neutre au lancement) + bouton recalibrer.
+- [x] Options : sensibilité, inversion, mode tactile/gyro (sauvegardées via `SaveManager`). Repli tactile si pas de gyro.
 
 ## Phase 2 — Vrai jeu
-- [ ] `WaveManager` + `levels.json` : niveaux = vagues puis boss, difficulté en dents de scie.
-- [ ] Nouveaux ennemis data-driven : kamikaze, tank, tourelle visante, essaim en formation.
-- [ ] `Boss` : barre de vie, FSM de phases (entrée → pattern A → pattern B < 50 % PV → enragé), patterns via `SpreadWeapon`.
-- [ ] Score + multiplicateur de combo ; crédits lâchés par les ennemis.
-- [ ] Power-ups en run : tir multiple, bouclier, aimant, soin, bombe.
-- [ ] Méta-progression : boutique entre les runs (cadence, dégâts, PV, vitesse, aimant ; coût `base × 1.12^n`), vaisseaux à débloquer.
-- [ ] UI/UX : titre, sélection de niveau, boutique, options, pause, victoire, game over + stats ; HUD mobile ; zones sûres ; juice (hit-stop, particules, `navigator.vibrate`).
-- [ ] Audio : musique + SFX (Kenney CC0), volumes.
+- [x] `WaveManager` + `levels.json` : niveaux = vagues puis boss, difficulté en dents de scie.
+- [x] Ennemis data-driven (`enemies.json`) : scout, weaver (sinus), kamikaze, tank, tourelle visante ; formations random/column/sides/line/V.
+- [x] `Boss` : barre de vie, FSM de phases (entrée → pattern A → pattern B < 50 % PV → enragé), patterns via `SpreadWeapon`.
+- [x] Score + multiplicateur de combo ; crédits lâchés par les ennemis.
+- [x] Power-ups en run : tir multiple, bouclier, aimant, soin, bombe.
+- [x] Méta-progression : boutique entre les runs (cadence, dégâts, PV, vitesse, aimant ; coût `base × 1.12^n`), vaisseaux à débloquer.
+- [x] UI/UX : titre, sélection de niveau, boutique, options, pause, résultats ; HUD mobile (pause, bombe, combo, crédits, barre de boss) ; zones sûres ; juice (particules, textes flottants, flash, vibration).
+- [x] Audio : SFX synthétisés en WebAudio (explosion, pièce, bonus, coup, bombe, alarme), option son.
+- [ ] Musique de fond (pas d'asset dispo).
 
 ## Phase 3 — Multijoueur coop
 - [ ] Coop 2–4 joueurs, hôte autoritaire : l'hôte simule, les clients envoient leurs inputs et reçoivent l'état (~20 Hz) avec interpolation.
