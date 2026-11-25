@@ -3,6 +3,8 @@ export default class GameConstants {
         PLAYER_SPAWNED_EVENT: "playerSpawned",
         ENEMY_SPAWNED_EVENT: "enemySpawned",
         PAUSE_REQUESTED_EVENT: "pauseRequested",
+        /** (text: string) big centered message on the HUD */
+        BANNER_EVENT: "banner",
     } as const);
 
     public static readonly SceneKeys = Object.freeze({
@@ -15,7 +17,8 @@ export default class GameConstants {
     } as const);
 
     public static readonly DataKeys = Object.freeze({
-        SINUSOIDAL_ENEMY: "sinusoidalEnemy",
+        ENEMIES: "enemies",
+        LEVELS: "levels",
     } as const);
 
     public static readonly MAX_SCORE_DIGITS: number = 6;

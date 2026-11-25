@@ -8,6 +8,7 @@ import Button from "../ui/Button.ts";
 export default class MainUIScene extends Scene {
     private _playerHealthText: GameObjects.BitmapText;
     private _scoreText: GameObjects.BitmapText;
+    private _bannerText: GameObjects.Text;
 
     constructor() {
         super(GameConstants.SceneKeys.MAIN_UI);
@@ -16,10 +17,12 @@ export default class MainUIScene extends Scene {
     // noinspection JSUnusedGlobalSymbols
     init() {
         this.game.events.on(GameConstants.Events.PLAYER_SPAWNED_EVENT, this.onPlayerSpawned, this);
+        this.game.events.on(GameConstants.Events.BANNER_EVENT, this.showBanner, this);
         this.registry.events.on(RegistryConstants.Events.PLAYER_SCORE_CHANGE, this.onPlayerScoreChanged, this);
 
         this.events.once(Scenes.Events.SHUTDOWN, () => {
             this.game.events.off(GameConstants.Events.PLAYER_SPAWNED_EVENT, this.onPlayerSpawned, this);
+            this.game.events.off(GameConstants.Events.BANNER_EVENT, this.showBanner, this);
             this.registry.events.off(RegistryConstants.Events.PLAYER_SCORE_CHANGE, this.onPlayerScoreChanged, this);
         }, this);
     }
@@ -42,9 +45,25 @@ export default class MainUIScene extends Scene {
             () => this.game.events.emit(GameConstants.Events.PAUSE_REQUESTED_EVENT),
             {width: 140, height: 140, fontSize: 56, fillColor: 0x3a2d5c}).setAlpha(0.7);
 
+        this._bannerText = this.add.text(this.scale.width / 2, this.scale.height * 0.38, '',
+            {fontSize: '88px', color: '#fff', fontFamily: 'future', align: 'center', stroke: '#000', strokeThickness: 10})
+            .setOrigin(0.5).setAlpha(0);
+
         this.scene.bringToTop();
 
         console.log("MainUIScene created");
+    }
+
+    private showBanner(text: string) {
+        this.tweens.killTweensOf(this._bannerText);
+        this._bannerText.setText(text).setAlpha(0).setScale(0.6);
+        this.tweens.chain({
+            targets: this._bannerText,
+            tweens: [
+                {alpha: 1, scale: 1, duration: 250, ease: 'Back.easeOut'},
+                {alpha: 0, duration: 400, delay: 1300}
+            ]
+        });
     }
 
     private onPlayerScoreChanged(_: any, value: number) {

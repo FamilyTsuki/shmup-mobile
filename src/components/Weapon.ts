@@ -19,11 +19,11 @@ export default class Weapon implements IComponent {
         this._bulletData = bulletData;
     }
 
-    public shoot(source: Entity) {
+    public shoot(source: Entity, angleOffset: number = 0) {
         if (!this.enabled)
             return;
 
-        this.spawnBullet(source, 0);
+        this.spawnBullet(source, angleOffset);
     }
 
     protected spawnBullet(source: Entity, angleOffset: number) {

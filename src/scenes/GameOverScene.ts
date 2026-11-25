@@ -1,6 +1,7 @@
 import {Input} from "phaser";
 import GameConstants from "../GameConstants.ts";
 import RegistryConstants from "../RegistryConstants.ts";
+import type {RunResultData} from "./MainGameScene.ts";
 
 export default class GameOverScene extends Phaser.Scene {
     // The finger is usually still on the screen from playing when the player dies
@@ -10,12 +11,12 @@ export default class GameOverScene extends Phaser.Scene {
         super(GameConstants.SceneKeys.GAME_OVER);
     }
 
-    create() {
+    create(result: RunResultData) {
         this.scene.stop(GameConstants.SceneKeys.MAIN_UI);
 
         const screenCenterX: number = this.scale.width / 2;
         const titleY: number = this.scale.height / 3;
-        this.add.text(screenCenterX, titleY, 'GAME OVER',
+        this.add.text(screenCenterX, titleY, result.victory ? 'VICTOIRE' : 'GAME OVER',
             {fontSize: '96px', color: '#fff', align: 'center'}).setOrigin(0.5);
         this.add.text(screenCenterX, titleY + 160, "SCORE",
             {fontSize: '48px', align: 'center'}).setOrigin(0.5);

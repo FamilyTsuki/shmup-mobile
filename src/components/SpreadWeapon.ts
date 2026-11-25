@@ -16,12 +16,15 @@ export default class SpreadWeapon extends Weapon {
         this._spreadAngleDeg = spreadAngleDeg;
     }
 
-    public override shoot(source: Entity) {
+    /**
+     * @param angleOffset rotation in radians added to the source forward direction, to aim the whole fan
+     */
+    public override shoot(source: Entity, angleOffset: number = 0) {
         if (!this.enabled)
             return;
 
         if (this._bulletCount <= 1) {
-            super.shoot(source);
+            super.shoot(source, angleOffset);
             return;
         }
 
@@ -32,7 +35,7 @@ export default class SpreadWeapon extends Weapon {
         const startDeg = isFullCircle ? 0 : -this._spreadAngleDeg / 2;
 
         for (let i = 0; i < this._bulletCount; i++) {
-            this.spawnBullet(source, Phaser.Math.DegToRad(startDeg + i * stepDeg));
+            this.spawnBullet(source, angleOffset + Phaser.Math.DegToRad(startDeg + i * stepDeg));
         }
     }
 }
