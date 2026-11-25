@@ -1,4 +1,4 @@
-import {Loader} from "phaser";
+import {Input, Loader} from "phaser";
 import GameConstants from "../GameConstants.ts";
 
 export default class HomeScene extends Phaser.Scene {
@@ -44,18 +44,30 @@ export default class HomeScene extends Phaser.Scene {
     create() {
         this.add.text(this.scale.width / 2, this.scale.width / 2, 'CODA SHMUP',
             {fontSize: '72px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
-        this.add.text(this.scale.width / 2, this.scale.width / 2 + 72, 'Press SPACE to start',
-            {fontSize: '32px', color: '#fff'}).setOrigin(0.5);
+        this.add.text(this.scale.width / 2, this.scale.width / 2 + 72, 'Touchez pour jouer',
+            {fontSize: '48px', color: '#fff'}).setOrigin(0.5);
 
         // Ignore the OS key repeat: SPACE may still be held from the previous game
         this.input.keyboard?.on('keydown-SPACE', (event: KeyboardEvent) => {
             if (event.repeat)
                 return;
 
-            this.scene.launch(GameConstants.SceneKeys.MAIN_UI);
-            this.scene.start(GameConstants.SceneKeys.MAIN_GAME);
+            this.startGame();
+        });
+
+        // Fullscreen must be requested from a pointer up, browsers refuse it outside a user gesture
+        this.input.once(Input.Events.POINTER_UP, () => {
+            if (this.sys.game.device.input.touch && this.scale.fullscreen.available && !this.scale.isFullscreen)
+                this.scale.startFullscreen();
+
+            this.startGame();
         });
 
         console.log("HomeScene created");
+    }
+
+    private startGame() {
+        this.scene.launch(GameConstants.SceneKeys.MAIN_UI);
+        this.scene.start(GameConstants.SceneKeys.MAIN_GAME);
     }
 }
