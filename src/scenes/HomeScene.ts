@@ -1,9 +1,24 @@
-import {Input, Loader} from "phaser";
+import {GameObjects, Loader} from "phaser";
 import GameConstants from "../GameConstants.ts";
+import SaveConstants from "../SaveConstants.ts";
+import GyroSensor from "../input/GyroSensor.ts";
+import SaveManager from "../managers/SaveManager.ts";
+import Settings from "../managers/Settings.ts";
+import Button from "../ui/Button.ts";
 
 export default class HomeScene extends Phaser.Scene {
+    private static readonly FALLBACK_MESSAGE_MS: number = 1500;
+
+    private saveManager: SaveManager;
+    private _messageText: GameObjects.Text;
+    private _starting: boolean;
+
     constructor() {
         super(GameConstants.SceneKeys.HOME);
+    }
+
+    init() {
+        this._starting = false;
     }
 
     preload() {
@@ -42,10 +57,23 @@ export default class HomeScene extends Phaser.Scene {
     }
 
     create() {
-        this.add.text(this.scale.width / 2, this.scale.width / 2, 'CODA SHMUP',
-            {fontSize: '72px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
-        this.add.text(this.scale.width / 2, this.scale.width / 2 + 72, 'Touchez pour jouer',
-            {fontSize: '48px', color: '#fff'}).setOrigin(0.5);
+        this.saveManager.load();
+
+        const centerX = this.scale.width / 2;
+        this.add.text(centerX, 520, 'CODA SHMUP',
+            {fontSize: '120px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
+
+        const bestScore = Number(this.saveManager.getData(SaveConstants.Keys.PLAYER_BEST_SCORE) ?? 0);
+        this.add.text(centerX, 660, `Meilleur score : ${bestScore}`,
+            {fontSize: '48px', color: '#ffe066', fontFamily: 'future'}).setOrigin(0.5);
+
+        new Button(this, centerX, 1050, 'JOUER', () => this.startGame());
+        new Button(this, centerX, 1250, 'OPTIONS', () => this.scene.start(GameConstants.SceneKeys.OPTIONS));
+
+        const controls = Settings.getControls(this.saveManager);
+        this._messageText = this.add.text(centerX, 1450,
+            `Contrôle : ${controls.mode === 'gyro' ? 'gyroscope' : 'doigt'}`,
+            {fontSize: '40px', color: '#bbb', align: 'center'}).setOrigin(0.5);
 
         // Ignore the OS key repeat: SPACE may still be held from the previous game
         this.input.keyboard?.on('keydown-SPACE', (event: KeyboardEvent) => {
@@ -54,19 +82,36 @@ export default class HomeScene extends Phaser.Scene {
 
             this.startGame();
         });
-
-        // Fullscreen must be requested from a pointer up, browsers refuse it outside a user gesture
-        this.input.once(Input.Events.POINTER_UP, () => {
-            if (this.sys.game.device.input.touch && this.scale.fullscreen.available && !this.scale.isFullscreen)
-                this.scale.startFullscreen();
-
-            this.startGame();
-        });
-
-        console.log("HomeScene created");
     }
 
     private startGame() {
+        if (this._starting)
+            return;
+        this._starting = true;
+
+        // Both requests need the tap gesture that is being handled right now
+        if (this.sys.game.device.input.touch && this.scale.fullscreen.available && !this.scale.isFullscreen)
+            this.scale.startFullscreen();
+
+        if (Settings.getControls(this.saveManager).mode !== 'gyro') {
+            this.launchGame();
+            return;
+        }
+
+        GyroSensor.requestAccess().then((granted) => {
+            if (!granted) {
+                // Without the sensor the ship could not move: fall back to touch for this device
+                Settings.setControlMode(this.saveManager, 'touch');
+                this._messageText.setText('Gyroscope refusé ou absent\ncontrôle au doigt');
+                this.time.delayedCall(HomeScene.FALLBACK_MESSAGE_MS, () => this.launchGame());
+                return;
+            }
+
+            this.launchGame();
+        });
+    }
+
+    private launchGame() {
         this.scene.launch(GameConstants.SceneKeys.MAIN_UI);
         this.scene.start(GameConstants.SceneKeys.MAIN_GAME);
     }

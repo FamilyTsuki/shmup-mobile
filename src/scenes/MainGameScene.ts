@@ -6,6 +6,8 @@ import SaveConstants from "../SaveConstants.ts";
 import EntityManager from "../managers/EntityManager.ts";
 import GameConstants from "../GameConstants.ts";
 import LocalInput from "../input/LocalInput.ts";
+import GyroSensor from "../input/GyroSensor.ts";
+import Settings from "../managers/Settings.ts";
 
 export default class MainGameScene extends Scene {
     private bg: GameObjects.TileSprite;
@@ -33,7 +35,10 @@ export default class MainGameScene extends Scene {
             console.error('EntityManager plugin not found');
         }
 
-        const input = new LocalInput(this);
+        const controls = Settings.getControls(this.saveManager);
+        if (controls.mode === 'gyro')
+            GyroSensor.calibrate();
+        const input = new LocalInput(this, controls.mode === 'gyro' ? controls.gyro : undefined);
         const player = this.entityManager.initAndSpawnPlayer(input);
         player.getComponent(Health)?.once(Health.DEATH_EVENT, () => {
             // Hide the player and let its explosion play before showing the game over screen
@@ -51,8 +56,10 @@ export default class MainGameScene extends Scene {
 
         // Pause when the player switches app, locks the phone or changes tab
         this.game.events.on(Core.Events.HIDDEN, this.pauseGame, this);
+        this.game.events.on(GameConstants.Events.PAUSE_REQUESTED_EVENT, this.pauseGame, this);
         this.events.once(Scenes.Events.SHUTDOWN, () => {
             this.game.events.off(Core.Events.HIDDEN, this.pauseGame, this);
+            this.game.events.off(GameConstants.Events.PAUSE_REQUESTED_EVENT, this.pauseGame, this);
             input.destroy();
         });
 

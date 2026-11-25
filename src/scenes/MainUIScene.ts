@@ -3,6 +3,7 @@ import Health from "../components/Health.ts";
 import Player from "../entities/Player.ts";
 import GameConstants from "../GameConstants.ts";
 import RegistryConstants from "../RegistryConstants.ts";
+import Button from "../ui/Button.ts";
 
 export default class MainUIScene extends Scene {
     private _playerHealthText: GameObjects.BitmapText;
@@ -36,6 +37,10 @@ export default class MainUIScene extends Scene {
                 .padStart(GameConstants.MAX_SCORE_DIGITS, "0");
         this._scoreText = this.add.bitmapText(this.scale.width - 64, 64, "future-bmp", scoreStr, 128)
             .setOrigin(1, 0);
+
+        new Button(this, this.scale.width / 2, 120, 'II',
+            () => this.game.events.emit(GameConstants.Events.PAUSE_REQUESTED_EVENT),
+            {width: 140, height: 140, fontSize: 56, fillColor: 0x3a2d5c}).setAlpha(0.7);
 
         this.scene.bringToTop();
 
