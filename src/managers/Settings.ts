@@ -39,6 +39,14 @@ export default class Settings {
             Settings.MIN_GYRO_SENSITIVITY, Settings.MAX_GYRO_SENSITIVITY));
     }
 
+    public static isSoundEnabled(saveManager: SaveManager): boolean {
+        return saveManager.getData(SaveConstants.Keys.SOUND_ENABLED) !== false;
+    }
+
+    public static setSoundEnabled(saveManager: SaveManager, enabled: boolean) {
+        saveManager.setData(SaveConstants.Keys.SOUND_ENABLED, enabled);
+    }
+
     public static setGyroInvert(saveManager: SaveManager, invert: boolean) {
         saveManager.setData(SaveConstants.Keys.GYRO_INVERT, invert);
     }

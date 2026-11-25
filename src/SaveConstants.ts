@@ -4,6 +4,7 @@ export default class SaveConstants {
         CONTROL_MODE: 'controlMode',
         GYRO_SENSITIVITY: 'gyroSensitivity',
         GYRO_INVERT: 'gyroInvert',
+        SOUND_ENABLED: 'soundEnabled',
         /** Credits in the bank, spent in the shop */
         CREDITS: 'credits',
         UPGRADE_LEVELS: 'upgradeLevels',

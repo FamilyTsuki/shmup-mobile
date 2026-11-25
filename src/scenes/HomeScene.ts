@@ -60,6 +60,7 @@ export default class HomeScene extends Phaser.Scene {
         this.saveManager.load();
         TextureFactory.generate(this);
         RegistryConstants.initRunKeys(this.registry);
+        this.sound.mute = !Settings.isSoundEnabled(this.saveManager);
 
         const centerX = this.scale.width / 2;
         this.add.image(centerX, 760, 'sprites', 'playerShip1_blue').setAngle(-90).setScale(2.2);

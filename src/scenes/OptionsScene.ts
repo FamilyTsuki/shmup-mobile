@@ -13,6 +13,7 @@ export default class OptionsScene extends Scene {
     private saveManager: SaveManager;
     private _modeButton: Button;
     private _invertButton: Button;
+    private _soundButton: Button;
     private _sensitivityText: GameObjects.Text;
     private _messageText: GameObjects.Text;
     private _tiltCursor: GameObjects.Rectangle;
@@ -26,9 +27,15 @@ export default class OptionsScene extends Scene {
     create() {
         const centerX = this.scale.width / 2;
 
-        this.add.text(centerX, 260, 'OPTIONS', {fontSize: '110px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
+        this._soundButton = new Button(this, centerX, 380, '', () => {
+            Settings.setSoundEnabled(this.saveManager, !Settings.isSoundEnabled(this.saveManager));
+            this.sound.mute = !Settings.isSoundEnabled(this.saveManager);
+            this.refresh();
+        });
 
-        this._modeButton = new Button(this, centerX, 520, '', () => this.toggleMode());
+        this.add.text(centerX, 200, 'OPTIONS', {fontSize: '110px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
+
+        this._modeButton = new Button(this, centerX, 560, '', () => this.toggleMode());
 
         this.add.text(centerX, 720, 'Sensibilité gyroscope', {fontSize: '44px', color: '#fff'}).setOrigin(0.5);
         new Button(this, centerX - 300, 840, '-', () => this.changeSensitivity(-Settings.GYRO_SENSITIVITY_STEP),
@@ -97,6 +104,7 @@ export default class OptionsScene extends Scene {
         this._modeButton.setText(`Contrôle : ${gyroMode ? 'GYRO' : 'DOIGT'}`);
         this._invertButton.setText(`Inverser : ${controls.gyro.invert ? 'OUI' : 'NON'}`);
         this._sensitivityText.setText(controls.gyro.sensitivity.toFixed(2));
+        this._soundButton.setText(`Son : ${Settings.isSoundEnabled(this.saveManager) ? 'OUI' : 'NON'}`);
         this._gyroPreview = gyroMode ? new GyroInput(controls.gyro) : null;
     }
 }

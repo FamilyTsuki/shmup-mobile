@@ -1,6 +1,10 @@
 import {Core, GameObjects, Input, Scene, Scenes} from 'phaser';
 import Health from "../components/Health.ts";
 import Boss from "../entities/Boss.ts";
+import Enemy from "../entities/Enemy.ts";
+import Player from "../entities/Player.ts";
+import Sfx from "../audio/Sfx.ts";
+import Effects from "../effects/Effects.ts";
 import RegistryConstants from "../RegistryConstants.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import SaveConstants from "../SaveConstants.ts";
@@ -13,7 +17,7 @@ import LocalInput from "../input/LocalInput.ts";
 import GyroSensor from "../input/GyroSensor.ts";
 import Settings from "../managers/Settings.ts";
 import type {LevelData, LevelsData} from "../gameData/LevelData.ts";
-import type {PowerUpsData} from "../gameData/PowerUpData.ts";
+import type {PowerUpsData, PowerUpType} from "../gameData/PowerUpData.ts";
 import type {PlayerShipsData} from "../gameData/PlayerShipsData.ts";
 import {computePlayerStats, UpgradesData} from "../gameData/UpgradeData.ts";
 
@@ -35,6 +39,11 @@ export default class MainGameScene extends Scene {
     private static readonly END_DELAY_MS: number = 1000;
     private static readonly VICTORY_DELAY_MS: number = 3500;
     private static readonly LOOT_ATTRACT_DELAY_MS: number = 800;
+    private static readonly DEFAULT_EXPLOSION_COLOR: number = 0xff8844;
+    private static readonly PARTICLES_PER_SCALE: number = 22;
+    private static readonly POWER_UP_LABELS: { [type in PowerUpType]: string } = {
+        rapidFire: 'CADENCE +', multiShot: 'MULTI-TIR', shield: 'BOUCLIER', heal: '+1 VIE', bomb: '+1 BOMBE',
+    };
     private static readonly BOSS_WARNING_MS: number = 2500;
 
     private bg: GameObjects.TileSprite;
@@ -47,6 +56,9 @@ export default class MainGameScene extends Scene {
     private _scoreManager: ScoreManager;
     private _powerUps: PowerUpsData;
     private _boss: Boss | null;
+    private _sfx: Sfx;
+    private _effects: Effects;
+    private _player: Player;
     private _ended: boolean;
 
     constructor() {
@@ -92,7 +104,14 @@ export default class MainGameScene extends Scene {
         }, this);
         this.entityManager.initEnemies();
         this.entityManager.initGroupCollisions();
+        this._player = player;
+
+        this._sfx = new Sfx(this.sound);
+        this._effects = new Effects(this);
         this.events.on(EntityManager.CREDITS_COLLECTED_EVENT, this.onCreditsCollected, this);
+        this.events.on(Enemy.KILLED_EVENT, this.onEnemyKilled, this);
+        this.events.on(Player.HIT_EVENT, this.onPlayerHit, this);
+        this.events.on(Player.POWER_UP_EVENT, this.onPowerUp, this);
 
         this._waveManager = new WaveManager(this, this.entityManager, this._level);
         this._waveManager.on(WaveManager.WAVE_STARTED_EVENT, (index: number, count: number) => {
@@ -101,6 +120,7 @@ export default class MainGameScene extends Scene {
         this._waveManager.on(WaveManager.ALL_WAVES_CLEARED_EVENT, () => {
             this.showBanner('ALERTE\nBOSS EN APPROCHE');
             this.cameras.main.flash(300, 120, 0, 0);
+            this._sfx.alarm();
             this.time.delayedCall(MainGameScene.BOSS_WARNING_MS, () => this.spawnBoss());
         });
 
@@ -118,6 +138,9 @@ export default class MainGameScene extends Scene {
         this.events.once(Scenes.Events.SHUTDOWN, () => {
             this.game.events.off(GameConstants.Events.BOMB_REQUESTED_EVENT, this.useBomb, this);
             this.events.off(EntityManager.CREDITS_COLLECTED_EVENT, this.onCreditsCollected, this);
+            this.events.off(Enemy.KILLED_EVENT, this.onEnemyKilled, this);
+            this.events.off(Player.HIT_EVENT, this.onPlayerHit, this);
+            this.events.off(Player.POWER_UP_EVENT, this.onPowerUp, this);
             this._scoreManager.destroy();
             this.game.events.off(Core.Events.HIDDEN, this.pauseGame, this);
             this.game.events.off(GameConstants.Events.PAUSE_REQUESTED_EVENT, this.pauseGame, this);
@@ -148,6 +171,8 @@ export default class MainGameScene extends Scene {
         });
         this.events.once(Boss.DEFEATED_EVENT, () => {
             this._boss = null;
+            this._sfx.explosion(true);
+            this._effects.explosion(boss.x, boss.y, boss.tintTopLeft, 120);
             this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, -1);
             this._scoreManager.addScore(boss.bossData.score);
             this.entityManager.dropCoins(boss.x, boss.y, this._powerUps.bossCreditCoins,
@@ -160,6 +185,24 @@ export default class MainGameScene extends Scene {
 
     private onCreditsCollected(credits: number) {
         this._scoreManager.addCredits(credits);
+        this._sfx.coin();
+    }
+
+    private onEnemyKilled(enemy: Enemy) {
+        const tint = enemy.enemyData.tint;
+        const color = tint ? Phaser.Display.Color.HexStringToColor(tint).color : MainGameScene.DEFAULT_EXPLOSION_COLOR;
+        this._effects.explosion(enemy.x, enemy.y, color, Math.round(MainGameScene.PARTICLES_PER_SCALE * enemy.scale));
+        this._sfx.explosion();
+    }
+
+    private onPlayerHit() {
+        this._sfx.playerHit();
+        this.cameras.main.flash(150, 255, 40, 40);
+    }
+
+    private onPowerUp(type: PowerUpType) {
+        this._sfx.powerUp();
+        this._effects.floatingText(this._player.x, this._player.y - 110, MainGameScene.POWER_UP_LABELS[type], '#ffd166');
     }
 
     private useBomb() {
@@ -172,6 +215,7 @@ export default class MainGameScene extends Scene {
 
         this.cameras.main.flash(250, 255, 255, 255);
         this.cameras.main.shake(400, 0.02);
+        this._sfx.bomb();
         navigator.vibrate?.(200);
     }
 
