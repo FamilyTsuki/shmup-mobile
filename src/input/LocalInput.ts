@@ -1,5 +1,6 @@
 import {Scene} from "phaser";
 import {emptyInputState, IInputSource, InputState} from "./InputState.ts";
+import GyroInput, {GyroSettings} from "./GyroInput.ts";
 import KeyboardInput from "./KeyboardInput.ts";
 import TouchInput from "./TouchInput.ts";
 
@@ -9,8 +10,13 @@ import TouchInput from "./TouchInput.ts";
 export default class LocalInput implements IInputSource {
     private readonly _sources: IInputSource[];
 
-    constructor(scene: Scene) {
+    /**
+     * @param gyro gyroscope settings, or undefined to steer without tilting the phone
+     */
+    constructor(scene: Scene, gyro?: GyroSettings) {
         this._sources = [new KeyboardInput(scene), new TouchInput(scene)];
+        if (gyro)
+            this._sources.push(new GyroInput(gyro));
     }
 
     public poll(): InputState {
