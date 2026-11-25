@@ -34,7 +34,11 @@ export function upgradeCost(upgrade: UpgradeData, level: number): number {
     return Math.round(upgrade.baseCost * Math.pow(upgrade.costGrowth, level));
 }
 
-export function computePlayerStats(data: UpgradesData, levels: UpgradeLevels): PlayerStats {
+/**
+ * @param shipBonus flat bonus of the selected ship, added last
+ */
+export function computePlayerStats(data: UpgradesData, levels: UpgradeLevels,
+                                   shipBonus: Partial<PlayerStats> = {}): PlayerStats {
     const stats: PlayerStats = {...data.base};
 
     for (const [key, upgrade] of Object.entries(data.upgrades)) {
@@ -44,6 +48,9 @@ export function computePlayerStats(data: UpgradesData, levels: UpgradeLevels): P
         else
             stats[upgrade.stat] += upgrade.perLevel * level;
     }
+
+    for (const [stat, bonus] of Object.entries(shipBonus) as [keyof PlayerStats, number][])
+        stats[stat] += bonus;
 
     return stats;
 }

@@ -5,6 +5,8 @@ import MainGameScene from './scenes/MainGameScene.ts';
 import MainUIScene from "./scenes/MainUIScene.ts";
 import PauseScene from "./scenes/PauseScene.ts";
 import OptionsScene from "./scenes/OptionsScene.ts";
+import LevelSelectScene from "./scenes/LevelSelectScene.ts";
+import ShopScene from "./scenes/ShopScene.ts";
 import EntityManager from "./managers/EntityManager.ts";
 import SaveManager from "./managers/SaveManager.ts";
 
@@ -41,7 +43,9 @@ const config: Types.Core.GameConfig = {
         MainUIScene,
         GameOverScene,
         PauseScene,
-        OptionsScene
+        OptionsScene,
+        LevelSelectScene,
+        ShopScene
     ]
 };
 

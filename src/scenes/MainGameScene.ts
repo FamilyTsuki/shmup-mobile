@@ -14,6 +14,7 @@ import GyroSensor from "../input/GyroSensor.ts";
 import Settings from "../managers/Settings.ts";
 import type {LevelData, LevelsData} from "../gameData/LevelData.ts";
 import type {PowerUpsData} from "../gameData/PowerUpData.ts";
+import type {PlayerShipsData} from "../gameData/PlayerShipsData.ts";
 import {computePlayerStats, UpgradesData} from "../gameData/UpgradeData.ts";
 
 export type MainGameSceneData = {
@@ -69,7 +70,9 @@ export default class MainGameScene extends Scene {
         this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, -1);
 
         const upgrades = this.cache.json.get(GameConstants.DataKeys.UPGRADES) as UpgradesData;
-        const stats = computePlayerStats(upgrades, Progress.getUpgradeLevels(this.saveManager));
+        const shipId = Progress.getSelectedShip(this.saveManager);
+        const ship = (this.cache.json.get(GameConstants.DataKeys.PLAYER_SHIPS) as PlayerShipsData)[shipId];
+        const stats = computePlayerStats(upgrades, Progress.getUpgradeLevels(this.saveManager), ship?.bonus);
         this.registry.set(RegistryConstants.Keys.BOMBS, stats.bombs);
 
         const bgMargin = 512;
@@ -81,7 +84,7 @@ export default class MainGameScene extends Scene {
         if (controls.mode === 'gyro')
             GyroSensor.calibrate();
         const input = new LocalInput(this, controls.mode === 'gyro' ? controls.gyro : undefined);
-        const player = this.entityManager.initAndSpawnPlayer(input, stats, Progress.getSelectedShip(this.saveManager));
+        const player = this.entityManager.initAndSpawnPlayer(input, stats, shipId);
         player.getComponent(Health)?.once(Health.DEATH_EVENT, () => {
             // Hide the player and let its explosion play before showing the game over screen
             player.disableBody(true, true);

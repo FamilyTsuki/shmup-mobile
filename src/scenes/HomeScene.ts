@@ -1,26 +1,20 @@
-import {GameObjects, Loader} from "phaser";
+import {Loader} from "phaser";
 import GameConstants from "../GameConstants.ts";
 import SaveConstants from "../SaveConstants.ts";
 import RegistryConstants from "../RegistryConstants.ts";
-import GyroSensor from "../input/GyroSensor.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import Settings from "../managers/Settings.ts";
+import Progress from "../managers/Progress.ts";
+import type {LevelsData} from "../gameData/LevelData.ts";
+import launchGame from "./launchGame.ts";
 import Button from "../ui/Button.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 
 export default class HomeScene extends Phaser.Scene {
-    private static readonly FALLBACK_MESSAGE_MS: number = 1500;
-
     private saveManager: SaveManager;
-    private _messageText: GameObjects.Text;
-    private _starting: boolean;
 
     constructor() {
         super(GameConstants.SceneKeys.HOME);
-    }
-
-    init() {
-        this._starting = false;
     }
 
     preload() {
@@ -52,7 +46,7 @@ export default class HomeScene extends Phaser.Scene {
         this.load.atlas('sprites', 'Spritesheet/gameSprites.png', 'Spritesheet/gameSprites.json');
         this.load.bitmapFont('future-bmp', 'Fonts/kenvector_future.png', 'Fonts/kenvector_future.xml');
         this.load.font('future', 'Fonts/kenvector_future.ttf');
-        this.load.json('playerShips', 'Data/playerShips.json');
+        this.load.json(GameConstants.DataKeys.PLAYER_SHIPS, 'Data/playerShips.json');
         this.load.json(GameConstants.DataKeys.ENEMIES, 'Data/enemies.json');
         this.load.json(GameConstants.DataKeys.LEVELS, 'Data/levels.json');
         this.load.json(GameConstants.DataKeys.BOSSES, 'Data/bosses.json');
@@ -68,59 +62,33 @@ export default class HomeScene extends Phaser.Scene {
         RegistryConstants.initRunKeys(this.registry);
 
         const centerX = this.scale.width / 2;
-        this.add.text(centerX, 520, 'CODA SHMUP',
+        this.add.image(centerX, 760, 'sprites', 'playerShip1_blue').setAngle(-90).setScale(2.2);
+        this.add.text(centerX, 420, 'CODA SHMUP',
             {fontSize: '120px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
 
         const bestScore = Number(this.saveManager.getData(SaveConstants.Keys.PLAYER_BEST_SCORE) ?? 0);
-        this.add.text(centerX, 660, `Meilleur score : ${bestScore}`,
-            {fontSize: '48px', color: '#ffe066', fontFamily: 'future'}).setOrigin(0.5);
+        this.add.text(centerX, 540, `Meilleur score : ${bestScore}`,
+            {fontSize: '44px', color: '#ffe066', fontFamily: 'future'}).setOrigin(0.5);
+        this.add.text(centerX, 1000, `$ ${Progress.getCredits(this.saveManager)}`,
+            {fontSize: '56px', color: '#ffd166', fontFamily: 'future'}).setOrigin(0.5);
 
-        new Button(this, centerX, 1050, 'JOUER', () => this.startGame());
-        new Button(this, centerX, 1250, 'OPTIONS', () => this.scene.start(GameConstants.SceneKeys.OPTIONS));
+        new Button(this, centerX, 1180, 'JOUER', () => this.scene.start(GameConstants.SceneKeys.LEVEL_SELECT));
+        new Button(this, centerX, 1370, 'BOUTIQUE', () => this.scene.start(GameConstants.SceneKeys.SHOP));
+        new Button(this, centerX, 1560, 'OPTIONS', () => this.scene.start(GameConstants.SceneKeys.OPTIONS));
 
         const controls = Settings.getControls(this.saveManager);
-        this._messageText = this.add.text(centerX, 1450,
-            `Contrôle : ${controls.mode === 'gyro' ? 'gyroscope' : 'doigt'}`,
-            {fontSize: '40px', color: '#bbb', align: 'center'}).setOrigin(0.5);
+        this.add.text(centerX, 1740, `Contrôle : ${controls.mode === 'gyro' ? 'gyroscope' : 'doigt'}`,
+            {fontSize: '36px', color: '#bbb'}).setOrigin(0.5);
 
-        // Ignore the OS key repeat: SPACE may still be held from the previous game
+        // Keyboard shortcut: SPACE plays the furthest unlocked level. Ignore the OS key repeat.
         this.input.keyboard?.on('keydown-SPACE', (event: KeyboardEvent) => {
-            if (event.repeat)
-                return;
-
-            this.startGame();
+            if (!event.repeat)
+                launchGame(this, this.saveManager, this.furthestLevel());
         });
     }
 
-    private startGame() {
-        if (this._starting)
-            return;
-        this._starting = true;
-
-        // Both requests need the tap gesture that is being handled right now
-        if (this.sys.game.device.input.touch && this.scale.fullscreen.available && !this.scale.isFullscreen)
-            this.scale.startFullscreen();
-
-        if (Settings.getControls(this.saveManager).mode !== 'gyro') {
-            this.launchGame();
-            return;
-        }
-
-        GyroSensor.requestAccess().then((granted) => {
-            if (!granted) {
-                // Without the sensor the ship could not move: fall back to touch for this device
-                Settings.setControlMode(this.saveManager, 'touch');
-                this._messageText.setText('Gyroscope refusé ou absent\ncontrôle au doigt');
-                this.time.delayedCall(HomeScene.FALLBACK_MESSAGE_MS, () => this.launchGame());
-                return;
-            }
-
-            this.launchGame();
-        });
-    }
-
-    private launchGame() {
-        this.scene.launch(GameConstants.SceneKeys.MAIN_UI);
-        this.scene.start(GameConstants.SceneKeys.MAIN_GAME);
+    private furthestLevel(): number {
+        const levelCount = (this.cache.json.get(GameConstants.DataKeys.LEVELS) as LevelsData).levels.length;
+        return Math.min(Progress.getUnlockedLevel(this.saveManager), levelCount - 1);
     }
 }

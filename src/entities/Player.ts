@@ -9,6 +9,7 @@ import Health from "../components/Health.ts";
 import Movement from "../components/Movement.ts";
 import SpreadWeapon from "../components/SpreadWeapon.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
+import GameConstants from "../GameConstants.ts";
 
 export default class Player extends Entity {
     /** Emitted on the scene events when the player loses health (not when a shield absorbs the hit) */
@@ -76,7 +77,7 @@ export default class Player extends Entity {
     }
 
     public selectPlayerShip(playerShipDataId: number) {
-        const playerShipsData = this.scene.cache.json.get('playerShips') as PlayerShipsData;
+        const playerShipsData = this.scene.cache.json.get(GameConstants.DataKeys.PLAYER_SHIPS) as PlayerShipsData;
         this._playerShipData = playerShipsData[playerShipDataId] ?? playerShipsData[1];
 
         this.setTexture('sprites', this._playerShipData.texture);

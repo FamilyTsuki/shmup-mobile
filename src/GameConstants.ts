@@ -15,6 +15,8 @@ export default class GameConstants {
         GAME_OVER: "GameOverScene",
         PAUSE: "PauseScene",
         OPTIONS: "OptionsScene",
+        LEVEL_SELECT: "LevelSelectScene",
+        SHOP: "ShopScene",
     } as const);
 
     public static readonly DataKeys = Object.freeze({
@@ -23,6 +25,7 @@ export default class GameConstants {
         BOSSES: "bosses",
         POWER_UPS: "powerUps",
         UPGRADES: "upgrades",
+        PLAYER_SHIPS: "playerShips",
     } as const);
 
     public static readonly MAX_SCORE_DIGITS: number = 6;

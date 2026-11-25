@@ -1,5 +1,9 @@
 {
   "1": {
+    "name": "Éclaireur",
+    "description": "Équilibré",
+    "price": 0,
+    "bonus": {},
     "movementSpeed": 0.6,
     "texture": "playerShip1_blue",
     "body": {
@@ -9,6 +13,12 @@
     }
   },
   "2": {
+    "name": "Intercepteur",
+    "description": "Rapide, +1 projectile",
+    "price": 400,
+    "bonus": {
+      "bulletCount": 1
+    },
     "movementSpeed": 0.9,
     "texture": "playerShip2_blue",
     "body": {
@@ -18,6 +28,13 @@
     }
   },
   "3": {
+    "name": "Foudre",
+    "description": "Très rapide, +1 dégât, +1 vie",
+    "price": 900,
+    "bonus": {
+      "damage": 1,
+      "maxHealth": 1
+    },
     "movementSpeed": 1.2,
     "texture": "playerShip3_blue",
     "body": {
