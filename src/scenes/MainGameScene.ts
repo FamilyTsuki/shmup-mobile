@@ -1,4 +1,4 @@
-import {GameObjects, Input, Scene, Scenes} from 'phaser';
+import {Core, GameObjects, Input, Scene, Scenes} from 'phaser';
 import Health from "../components/Health.ts";
 import RegistryConstants from "../RegistryConstants.ts";
 import SaveManager from "../managers/SaveManager.ts";
@@ -45,15 +45,28 @@ export default class MainGameScene extends Scene {
 
         if (this.input.keyboard) {
             this.input.keyboard.addKey(Input.Keyboard.KeyCodes.R).on('down', () => this.scene.restart());
+            this.input.keyboard.addKey(Input.Keyboard.KeyCodes.ESC).on('down', this.pauseGame, this);
+            this.input.keyboard.addKey(Input.Keyboard.KeyCodes.P).on('down', this.pauseGame, this);
         }
 
+        // Pause when the player switches app, locks the phone or changes tab
+        this.game.events.on(Core.Events.HIDDEN, this.pauseGame, this);
         this.events.once(Scenes.Events.SHUTDOWN, () => {
+            this.game.events.off(Core.Events.HIDDEN, this.pauseGame, this);
             input.destroy();
         });
 
         this.registry.set(RegistryConstants.Keys.PLAYER_SCORE, 0);
 
         console.log("MainGameScene created");
+    }
+
+    private pauseGame() {
+        if (!this.scene.isActive())
+            return;
+
+        this.scene.pause();
+        this.scene.launch(GameConstants.SceneKeys.PAUSE);
     }
 
     private endGame() {

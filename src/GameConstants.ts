@@ -9,6 +9,7 @@ export default class GameConstants {
         MAIN_GAME: "MainGameScene",
         MAIN_UI: "MainUIScene",
         GAME_OVER: "GameOverScene",
+        PAUSE: "PauseScene",
     } as const);
 
     public static readonly DataKeys = Object.freeze({
