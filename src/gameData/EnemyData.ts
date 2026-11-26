@@ -7,7 +7,9 @@ export type MovementData =
     /** Slides toward the player column while diving, horizontalSpeed in px/ms */
     | { type: 'chase', horizontalSpeed: number }
     /** Stops at stopY, sways for stayMs, then leaves downward */
-    | { type: 'hover', stopY: number, stayMs: number, swayAmplitude: number };
+    | { type: 'hover', stopY: number, stayMs: number, swayAmplitude: number }
+    /** Flies across the screen from one side to the other, at a random height between minY and maxY */
+    | { type: 'cross', minY: number, maxY: number };
 
 export type EnemyWeaponData = {
     bullet: BulletJsonData;
@@ -17,6 +19,8 @@ export type EnemyWeaponData = {
     aimed: boolean;
     /** Random delay between two shots, [min, max] in ms */
     fireDelayMs: [number, number];
+    /** Missiles: the bullets turn toward the player for a while */
+    homing?: { turnDegPerSec: number, homingMs: number };
 };
 
 export type EnemyData = {
@@ -44,6 +48,10 @@ export type EnemyData = {
      * polarities, and its bullets, if any, always hurt.
      */
     hazard?: boolean;
+    /** Spins on itself, and its shots turn with it */
+    spinDegPerSec?: number;
+    /** Releases these enemies every everyMs while alive */
+    summon?: { enemy: string, count: number, everyMs: number };
 };
 
 /** Enemy and boss bullets fly faster on harder levels and endless stages, up to a cap */

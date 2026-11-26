@@ -5,7 +5,7 @@ import Health from "../components/Health.ts";
 import SpreadWeapon from "../components/SpreadWeapon.ts";
 import {BulletData, toBulletData} from "../gameData/BulletData.ts";
 import type {BossData, BossOriginKey, BossPatternData, BossPhaseData, PatternPolarity} from "../gameData/BossData.ts";
-import {oppositePolarity, Polarity, POLARITY_STYLES, resolvePolarity} from "../gameData/PolarityData.ts";
+import {HAZARD_STYLE, oppositePolarity, Polarity, POLARITY_STYLES, resolvePolarity} from "../gameData/PolarityData.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 import {bulletSpeedFactor} from "../gameData/EnemyData.ts";
 
@@ -259,6 +259,24 @@ export default class Boss extends Entity {
             case 'traps':
                 fire = () => this.fireTraps(pattern, this.resolvePatternPolarity(pattern.polarity, shots));
                 break;
+            case 'beam':
+                fire = () => this.fireBeam(pattern);
+                break;
+            case 'snake':
+                fire = () => this.fireSpread(pattern, shots, pattern.aimed, (bullet) => bullet.wobble(pattern.amplitude, pattern.frequency));
+                break;
+            case 'rain':
+                fire = () => this.fireRain(pattern, this.resolvePatternPolarity(pattern.polarity, shots));
+                break;
+            case 'homing':
+                fire = () => {
+                    const target = this._findTarget();
+                    this.fireSpread(pattern, shots, true, (bullet) => {
+                        if (target)
+                            bullet.home(target, pattern.turnDegPerSec, pattern.homingMs);
+                    });
+                };
+                break;
         }
 
         return this.scene.time.addEvent({
@@ -293,6 +311,66 @@ export default class Boss extends Entity {
         const scaled = {...data, speed: data.speed * this._bulletSpeedFactor};
         bullet?.enable(x, y, Math.cos(angle) * scaled.speed, Math.sin(angle) * scaled.speed, scaled);
         return bullet;
+    }
+
+    /** A fan from the boss (or one of its origins), each bullet given a behavior */
+    private fireSpread(pattern: Extract<BossPatternData, { type: 'snake' | 'homing' }>, shot: number, aimed: boolean,
+                       behave: (bullet: Bullet) => void) {
+        const data = toBulletData(pattern.bullet, this.resolvePatternPolarity(pattern.polarity, shot));
+        const target = this._findTarget();
+        const step = pattern.bulletCount > 1 ? pattern.spreadAngleDeg / (pattern.bulletCount - 1) : 0;
+        for (const origin of this.resolveOrigins(pattern.origin)) {
+            const center = aimed && target ? Phaser.Math.Angle.Between(origin.x, origin.y, target.x, target.y) : Math.PI / 2;
+            for (let i = 0; i < pattern.bulletCount; i++) {
+                const angle = center + Phaser.Math.DegToRad(-pattern.spreadAngleDeg / 2 + i * step);
+                const bullet = this.spawnBullet(origin.x, origin.y, angle, data);
+                if (bullet)
+                    behave(bullet);
+            }
+        }
+    }
+
+    /** Laser: the warning glows where the player is, then a column of DANGER bullets burns there */
+    private fireBeam(pattern: Extract<BossPatternData, { type: 'beam' }>) {
+        const target = this._findTarget();
+        if (!target)
+            return;
+        const height = this.scene.cameras.main.height;
+        const columns = pattern.columns ?? 1;
+        const gap = pattern.gap ?? 0;
+        const top = this.y + this.displayHeight * 0.3;
+
+        for (let c = 0; c < columns; c++) {
+            const x = target.x + (c - (columns - 1) / 2) * gap;
+            // The warning is an image, so coop guests see it too
+            const warning = this.scene.add.image(x, (top + height) / 2, TextureFactory.PIXEL_KEY)
+                .setDisplaySize(pattern.width, height - top).setTint(HAZARD_STYLE.color).setAlpha(0.15).setDepth(5);
+            this.scene.tweens.add({targets: warning, alpha: 0.45, duration: pattern.warnMs / 6, yoyo: true, repeat: 2,
+                onComplete: () => {
+                    warning.destroy();
+                    if (this._state !== 'fighting')
+                        return;
+                    const data: BulletData = {width: pattern.width, height: pattern.width, speed: 0, damage: 1,
+                        polarity: this._polarity, shape: 'orb', hazard: true};
+                    for (let y = top; y < height; y += pattern.width * 0.8)
+                        this.spawnBullet(x, y, Math.PI / 2, data)?.expireAfter(pattern.durationMs);
+                    this.scene.cameras.main.shake(pattern.durationMs, 0.004);
+                }});
+        }
+    }
+
+    /** Meteors from the top at random places, one after the other */
+    private fireRain(pattern: Extract<BossPatternData, { type: 'rain' }>, polarity: Polarity) {
+        const width = this.scene.cameras.main.width;
+        const data = toBulletData(pattern.bullet, polarity);
+        for (let i = 0; i < pattern.count; i++) {
+            this.scene.time.delayedCall(Math.random() * pattern.spreadMs, () => {
+                if (this._state !== 'fighting')
+                    return;
+                const angle = Math.PI / 2 + Phaser.Math.DegToRad(Phaser.Math.Between(-12, 12));
+                this.spawnBullet(Phaser.Math.Between(40, width - 40), -20, angle, data);
+            });
+        }
     }
 
     /** A falling row with one gap, never right where the gap was last time */

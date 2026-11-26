@@ -4,6 +4,7 @@ import EnemyMovement from "./EnemyMovement.ts";
 import HoverMovement from "./HoverMovement.ts";
 import SineMovement from "./SineMovement.ts";
 import StraightMovement from "./StraightMovement.ts";
+import CrossMovement from "./CrossMovement.ts";
 
 export default function createEnemyMovement(data: MovementData): EnemyMovement {
     switch (data.type) {
@@ -15,5 +16,7 @@ export default function createEnemyMovement(data: MovementData): EnemyMovement {
             return new HoverMovement(data.stopY, data.stayMs, data.swayAmplitude);
         case 'straight':
             return new StraightMovement();
+        case 'cross':
+            return new CrossMovement(data.minY, data.maxY);
     }
 }

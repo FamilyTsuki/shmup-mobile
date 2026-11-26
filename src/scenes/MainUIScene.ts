@@ -248,7 +248,11 @@ export default class MainUIScene extends Scene {
      * Retro dialogue box: each line is typed letter by letter, then the next one replaces it.
      */
     /** @param skippable shows "tap to skip"; only the solo player or the host can */
-    private showDialogue(speaker: string, lines: string[], lineMs: number, skippable: boolean = false) {
+    /**
+     * @param y center of the box, right under the boss (set by the game scene); the default otherwise
+     */
+    private showDialogue(speaker: string, lines: string[], lineMs: number, skippable: boolean = false, y?: number) {
+        this._dialogue.y = y ?? MainUIScene.DIALOGUE_Y;
         this._dialogueSkip.setVisible(skippable && Net.role !== 'guest');
         this._dialogueTimers.forEach(timer => timer.remove());
         this._dialogueTimers = [];

@@ -53,6 +53,8 @@ export default class TextureFactory {
     public static readonly PARTICLE_KEY: string = 'particle';
     public static readonly SPARK_KEY: string = 'spark';
     public static readonly RING_KEY: string = 'ring';
+    /** A plain white square, stretched and tinted for flat shapes (the boss laser warning) */
+    public static readonly PIXEL_KEY: string = 'pixel';
     public static readonly SHIELD_KEY: string = 'shield';
     public static readonly LIFE_KEY: string = 'life';
     public static readonly NEBULA_KEY: string = 'nebula';
@@ -455,6 +457,78 @@ export default class TextureFactory {
                 '....o....',
             ]
         },
+        // Fires missiles: a round drone with a big eye
+        seeker: {
+            cell: 6, hitRadius: 5, grid: [
+                '....ooooo....',
+                '..oommmmmoo..',
+                '.ommlllllmmo.',
+                '.omlwwwwwlmo.',
+                'omlwwnnnwwlmo',
+                'omlwnnynnwlmo',
+                'omlwnyyynwlmo',
+                'omlwnnynnwlmo',
+                '.omlwwnwwlmo.',
+                '.ommlllllmmo.',
+                '..oommdmmoo..',
+                '...od.o.do...',
+                '..od.....do..',
+            ]
+        },
+        // Crosses the screen and drops bombs: wide wings
+        bomber: {
+            cell: 6, hitRadius: 5.5, grid: [
+                '.......o.......',
+                '......olo......',
+                '.....omlmo.....',
+                'oo..omnynmo..oo',
+                'olooomnnnmooolo',
+                'olmmmmmmmmmmmlo',
+                'odllllmmmlllldo',
+                '.odddmmmmmdddo.',
+                '..oo.odmdo.oo..',
+                '.....odmdo.....',
+                '......oeo......',
+                '.......e.......',
+            ]
+        },
+        // Spins and fires in four directions: a star with four arms
+        spinner: {
+            cell: 6, hitRadius: 5, grid: [
+                '......o......',
+                '.....olo.....',
+                '.....olo.....',
+                '....omlmo....',
+                '...ommymmo...',
+                '.ooommnmmooo.',
+                'ollmmnynmmllo',
+                '.ooommnmmooo.',
+                '...ommymmo...',
+                '....omdmo....',
+                '.....odo.....',
+                '.....odo.....',
+                '......o......',
+            ]
+        },
+        // Big and slow, releases minis: a hull with a bay
+        carrier: {
+            cell: 6, hitRadius: 7.5, grid: [
+                '.....ooooooooo.....',
+                '...oommmmmmmmmoo...',
+                '..omlllllllllllmo..',
+                '.omlmmmmmmmmmmmlmo.',
+                'omlmgggggggggggmlmo',
+                'omlmgnnnnnnnnngmlmo',
+                'omlmgnyy.n.yyngmlmo',
+                'omlmgnnnnnnnnngmlmo',
+                'omlmgggggggggggmlmo',
+                'omdmmmmmmmmmmmmmdmo',
+                '.omddddmmmmmddddmo.',
+                '..oommdo...odmmoo..',
+                '....oeeo...oeeo....',
+                '.....ee.....ee.....',
+            ]
+        },
         // Hides behind a grey shield: only the other color gets through
         warden: {
             cell: 6, hitRadius: 5.5, grid: [
@@ -540,6 +614,7 @@ export default class TextureFactory {
 
         TextureFactory.createEffects(scene);
         TextureFactory.createBackdrop(scene);
+        TextureFactory.createGrid(scene, TextureFactory.PIXEL_KEY, ['w'], TextureFactory.NEUTRAL, 4, 'none');
 
         for (const [name, grid] of Object.entries(TextureFactory.ICONS)) {
             TextureFactory.createGrid(scene, TextureFactory.iconKey(name as IconName), TextureFactory.outlined(grid),

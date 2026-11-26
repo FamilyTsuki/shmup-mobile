@@ -76,6 +76,55 @@ export type BossPatternData =
         count: number;
         lifetimeMs: number;
         polarity?: PatternPolarity;
+    }
+    /**
+     * Laser: a column lights up where the player is, then burns for durationMs. Moving sideways is the way out.
+     * columns > 1 adds beams on each side, gap px apart.
+     */
+    | {
+        type: 'beam';
+        delayMs: number;
+        warnMs: number;
+        durationMs: number;
+        /** Beam width in px, also the size of its bullets */
+        width: number;
+        columns?: number;
+        gap?: number;
+    }
+    /** A fan of bullets swinging from side to side as they fly */
+    | {
+        type: 'snake';
+        delayMs: number;
+        bullet: BulletJsonData;
+        bulletCount: number;
+        spreadAngleDeg: number;
+        aimed: boolean;
+        /** Swing in px on each side, and swings per second */
+        amplitude: number;
+        frequency: number;
+        polarity?: PatternPolarity;
+        origin?: BossOriginKey;
+    }
+    /** Meteors falling from the top at random places, spread over spreadMs */
+    | {
+        type: 'rain';
+        delayMs: number;
+        bullet: BulletJsonData;
+        count: number;
+        spreadMs: number;
+        polarity?: PatternPolarity;
+    }
+    /** Slow missiles that turn toward the player for a while, then fly straight */
+    | {
+        type: 'homing';
+        delayMs: number;
+        bullet: BulletJsonData;
+        bulletCount: number;
+        spreadAngleDeg: number;
+        turnDegPerSec: number;
+        homingMs: number;
+        polarity?: PatternPolarity;
+        origin?: BossOriginKey;
     };
 
 export type BossPhaseData = {

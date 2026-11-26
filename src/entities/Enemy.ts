@@ -15,6 +15,8 @@ import TextureFactory from "../utils/TextureFactory.ts";
 export default class Enemy extends Entity {
     /** Emitted on the scene events with the enemy, when it dies (not when it leaves the screen) */
     public static readonly KILLED_EVENT: string = 'enemyKilled';
+    /** Emitted on the scene events with the enemy, when it releases the enemies of its summon data */
+    public static readonly SUMMON_EVENT: string = 'enemySummon';
 
     private static readonly HIT_FLASH_MS: number = 50;
     private static readonly HIT_SLOW_FACTOR: number = 0.5;
@@ -38,6 +40,7 @@ export default class Enemy extends Entity {
     private _difficulty: number = 1;
     /** Time since the last polarity flip, for enemies that change color */
     private _flipElapsed: number = 0;
+    private _summonElapsed: number = 0;
     private _flipWarning: Phaser.Tweens.Tween | null = null;
 
     public get enemyType(): string {
@@ -112,6 +115,8 @@ export default class Enemy extends Entity {
         this.setPolarity(polarity);
         this.setAlpha(1);
         this._flipElapsed = 0;
+        this._summonElapsed = 0;
+        this.angle = 90;
         this.setScale(this._data.scale);
         this.enableBody(true, x, y - this.displayHeight, true, true);
         this.clearTint();
@@ -233,7 +238,10 @@ export default class Enemy extends Entity {
             angleOffset = angleToTarget - this.rotation;
         }
 
-        this.getComponent(SpreadWeapon)?.shoot(this, angleOffset);
+        const bullets = this.getComponent(SpreadWeapon)?.shoot(this, angleOffset) ?? [];
+        const homing = this._data.weapon?.homing;
+        if (homing && target?.active)
+            bullets.forEach(bullet => bullet.home(target, homing.turnDegPerSec, homing.homingMs));
         this.scene.sound.play('sfx_laser2', {volume: 0.35});
     }
 
@@ -265,6 +273,18 @@ export default class Enemy extends Entity {
 
         if (this.scared)
             return;
+
+        if (this._data.spinDegPerSec)
+            this.angle += this._data.spinDegPerSec * deltaTime / 1000;
+        const summon = this._data.summon;
+        if (summon) {
+            this._summonElapsed += deltaTime;
+            if (this._summonElapsed >= summon.everyMs && this.y > 0) {
+                this._summonElapsed = 0;
+                this.scene.events.emit(Enemy.SUMMON_EVENT, this);
+            }
+        }
+
         const ghostSlow = this.scene.time.now < this._slowedUntil ? this._slowFactor : 1;
         const speed = this._data.speed * (this.tintFill ? Enemy.HIT_SLOW_FACTOR : 1) * ghostSlow;
         this._movement.update(this, deltaTime, speed);

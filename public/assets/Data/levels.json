@@ -138,6 +138,26 @@
                     ]
                 },
                 {
+                    "hint": "Les BOMBARDIERS traversent\nl'écran : passe sous eux",
+                    "groups": [
+                        {
+                            "enemy": "bomber",
+                            "count": 4,
+                            "formation": "random",
+                            "intervalMs": 1400,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "scout",
+                            "count": 5,
+                            "formation": "random",
+                            "intervalMs": 700,
+                            "polarity": "random",
+                            "delayMs": 2500
+                        }
+                    ]
+                },
+                {
                     "groups": [
                         {
                             "enemy": "kamikaze",
@@ -219,6 +239,26 @@
                             "count": 3,
                             "formation": "line",
                             "intervalMs": 0,
+                            "polarity": "random",
+                            "delayMs": 3000
+                        }
+                    ]
+                },
+                {
+                    "hint": "MISSILES : ils te suivent\nun moment, fais-les rater",
+                    "groups": [
+                        {
+                            "enemy": "seeker",
+                            "count": 3,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "spinner",
+                            "count": 2,
+                            "formation": "random",
+                            "intervalMs": 2000,
                             "polarity": "random",
                             "delayMs": 3000
                         }
@@ -320,6 +360,26 @@
                     ]
                 },
                 {
+                    "hint": "Le PORTEUR lâche des minis :\nabats-le vite !",
+                    "groups": [
+                        {
+                            "enemy": "carrier",
+                            "count": 1,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "plasma"
+                        },
+                        {
+                            "enemy": "bomber",
+                            "count": 3,
+                            "formation": "random",
+                            "intervalMs": 1500,
+                            "polarity": "alternate",
+                            "delayMs": 2500
+                        }
+                    ]
+                },
+                {
                     "groups": [
                         {
                             "enemy": "kamikaze",
@@ -390,6 +450,33 @@
                             "intervalMs": 0,
                             "delayMs": 2500,
                             "polarity": "ion"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "carrier",
+                            "count": 2,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "seeker",
+                            "count": 3,
+                            "formation": "v",
+                            "intervalMs": 0,
+                            "polarity": "random",
+                            "delayMs": 2500
+                        },
+                        {
+                            "enemy": "spinner",
+                            "count": 3,
+                            "formation": "random",
+                            "intervalMs": 1200,
+                            "polarity": "alternate",
+                            "delayMs": 4500
                         }
                     ]
                 },

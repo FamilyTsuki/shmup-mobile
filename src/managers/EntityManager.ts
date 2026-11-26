@@ -155,8 +155,10 @@ export default class EntityManager extends Plugins.ScenePlugin {
         });
 
         this.scene!.events.on(Enemy.KILLED_EVENT, this.onEnemyKilled, this);
+        this.scene!.events.on(Enemy.SUMMON_EVENT, this.onEnemySummon, this);
         this.scene!.events.once(Scenes.Events.SHUTDOWN, () => {
             this.scene!.events.off(Enemy.KILLED_EVENT, this.onEnemyKilled, this);
+            this.scene!.events.off(Enemy.SUMMON_EVENT, this.onEnemySummon, this);
         });
     }
 
@@ -334,14 +336,25 @@ export default class EntityManager extends Plugins.ScenePlugin {
         if (Math.random() < enemy.enemyData.dropChance)
             this.spawnPickup(this.randomPowerUp(), enemy.x, enemy.y, 0);
 
-        // Splits into smaller enemies, one of each color in turn, spread around where it died
+        // Splits into smaller enemies, spread around where it died
         const split = enemy.enemyData.split;
-        if (split) {
-            for (let i = 0; i < split.count; i++) {
-                const offset = (i - (split.count - 1) / 2) * EntityManager.SPLIT_SPREAD_PX;
-                this.spawnEnemy(split.enemy, enemy.x + offset, enemy.y + EntityManager.SPLIT_DROP_PX, enemy.difficulty,
-                    i % 2 === 0 ? 'ion' : 'plasma');
-            }
+        if (split)
+            this.spawnAround(enemy, split.enemy, split.count);
+    }
+
+    /** A carrier releases its passengers */
+    private onEnemySummon(enemy: Enemy) {
+        const summon = enemy.enemyData.summon;
+        if (summon)
+            this.spawnAround(enemy, summon.enemy, summon.count);
+    }
+
+    /** Enemies around another one, one of each color in turn */
+    private spawnAround(enemy: Enemy, type: string, count: number) {
+        for (let i = 0; i < count; i++) {
+            const offset = (i - (count - 1) / 2) * EntityManager.SPLIT_SPREAD_PX;
+            this.spawnEnemy(type, enemy.x + offset, enemy.y + EntityManager.SPLIT_DROP_PX, enemy.difficulty,
+                i % 2 === 0 ? 'ion' : 'plasma');
         }
     }
 

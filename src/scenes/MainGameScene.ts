@@ -58,6 +58,11 @@ export type GameOverData = RunResultData & {
 
 export default class MainGameScene extends Scene {
     private static readonly END_DELAY_MS: number = 1000;
+    /** Distance from the bottom of the boss to the center of the dialogue box (half the box and a margin) */
+    private static readonly DIALOGUE_GAP: number = 160;
+    private static readonly DIALOGUE_MIN_Y: number = 500;
+    /** Lower would cover the ship in its usual place at the bottom */
+    private static readonly DIALOGUE_MAX_Y: number = 1150;
     private static readonly VICTORY_DELAY_MS: number = 3500;
     private static readonly LOOT_ATTRACT_DELAY_MS: number = 800;
     private static readonly PLAYER_EXPLOSION_COLOR: number = 0xffffff;
@@ -394,7 +399,21 @@ export default class MainGameScene extends Scene {
     }
 
     private onBossSpeak(speaker: string, lines: string[], lineMs: number) {
-        this.hud('dialogue', [speaker, lines, lineMs, this._boss?.isTalking === true && this._introSkippable]);
+        this.hud('dialogue', [speaker, lines, lineMs, this._boss?.isTalking === true && this._introSkippable,
+            this.dialogueY()]);
+    }
+
+    /**
+     * The dialogue box goes right under the boss so it hides neither the boss nor, as far as possible, the ship:
+     * big bosses push it lower. Their resting place (entryY) is used, not where they are while still entering.
+     */
+    private dialogueY(): number {
+        const boss = this._boss;
+        if (!boss)
+            return MainGameScene.DIALOGUE_MIN_Y;
+        const bossBottom = boss.bossData.entryY + boss.displayHeight / 2;
+        return Phaser.Math.Clamp(bossBottom + MainGameScene.DIALOGUE_GAP, MainGameScene.DIALOGUE_MIN_Y,
+            MainGameScene.DIALOGUE_MAX_Y);
     }
 
     /**

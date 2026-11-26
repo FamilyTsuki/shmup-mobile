@@ -25,6 +25,14 @@ export default class Bullet extends Phaser.GameObjects.Image {
     private _returnTarget: Point | null = null;
     private _returning: boolean = false;
     private _owner: number = -1;
+    /** Snake: sideways swing around the flight line */
+    private _wobbleAmplitude: number = 0;
+    private _wobbleFrequency: number = 0;
+    private _flightAngle: number = 0;
+    /** Homing: turns toward the target until homingUntil (age in ms) */
+    private _homingTarget: Point | null = null;
+    private _homingTurnRad: number = 0;
+    private _homingUntil: number = 0;
     private _hazard: boolean = false;
 
     /** DANGER (orange): always hurts the player, whatever its polarity */
@@ -84,6 +92,8 @@ export default class Bullet extends Phaser.GameObjects.Image {
         this._returnAtMs = -1;
         this._returnTarget = null;
         this._returning = false;
+        this._wobbleAmplitude = 0;
+        this._homingTarget = null;
 
         // Rotate the bullet to face the direction it's moving
         this.setRotation(this._arcadeBody.velocity.angle());
@@ -97,6 +107,24 @@ export default class Bullet extends Phaser.GameObjects.Image {
         this._arcadeBody.setVelocity(0, 0);
         this._launchAtMs = holdMs;
         this._launchTarget = {x: target.x, y: target.y};
+    }
+
+    /**
+     * Flies along its line while swinging from side to side, like a snake.
+     * @param amplitude px on each side
+     * @param frequency swings per second
+     */
+    public wobble(amplitude: number, frequency: number) {
+        this._wobbleAmplitude = amplitude;
+        this._wobbleFrequency = frequency;
+        this._flightAngle = this._arcadeBody.velocity.angle();
+    }
+
+    /** Turns toward the target, at most turnDegPerSec, during homingMs; then flies straight */
+    public home(target: Point, turnDegPerSec: number, homingMs: number) {
+        this._homingTarget = target;
+        this._homingTurnRad = Phaser.Math.DegToRad(turnDegPerSec);
+        this._homingUntil = this._ageMs + homingMs;
     }
 
     public expireAfter(lifetimeMs: number) {
@@ -134,6 +162,22 @@ export default class Bullet extends Phaser.GameObjects.Image {
         if (this._launchAtMs >= 0 && this._ageMs >= this._launchAtMs && this._launchTarget) {
             this._launchAtMs = -1;
             this.flyTo(this._launchTarget.x, this._launchTarget.y);
+        }
+        if (this._homingTarget && this._ageMs < this._homingUntil && this._homingTarget.active !== false) {
+            const current = this._arcadeBody.velocity.angle();
+            const wanted = Phaser.Math.Angle.Between(this.x, this.y, this._homingTarget.x, this._homingTarget.y);
+            const angle = Phaser.Math.Angle.RotateTo(current, wanted, this._homingTurnRad * deltaTime / 1000);
+            this._arcadeBody.setVelocity(Math.cos(angle) * this._speed, Math.sin(angle) * this._speed);
+            this.setRotation(angle);
+        }
+        if (this._wobbleAmplitude > 0) {
+            // Forward speed plus a sideways speed whose integral is a sine of the given amplitude
+            const omega = 2 * Math.PI * this._wobbleFrequency;
+            const side = this._wobbleAmplitude * omega * Math.cos(omega * this._ageMs / 1000);
+            const a = this._flightAngle;
+            this._arcadeBody.setVelocity(Math.cos(a) * this._speed - Math.sin(a) * side,
+                Math.sin(a) * this._speed + Math.cos(a) * side);
+            this.setRotation(this._arcadeBody.velocity.angle());
         }
         if (this._returnAtMs >= 0 && this._ageMs >= this._returnAtMs)
             this._returning = true;

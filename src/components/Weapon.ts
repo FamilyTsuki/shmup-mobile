@@ -25,16 +25,18 @@ export default class Weapon implements IComponent {
         this._bulletData = bulletData;
     }
 
-    public shoot(source: Entity, angleOffset: number = 0, spawnPoint?: WeaponSpawnPoint) {
+    /** @returns the bullets fired, so the caller can give them a behavior (homing...) */
+    public shoot(source: Entity, angleOffset: number = 0, spawnPoint?: WeaponSpawnPoint): Bullet[] {
         if (!this.enabled)
-            return;
+            return [];
 
-        this.spawnBullet(source, angleOffset, spawnPoint);
+        const bullet = this.spawnBullet(source, angleOffset, spawnPoint);
+        return bullet ? [bullet] : [];
     }
 
-    protected spawnBullet(source: Entity, angleOffset: number, spawnPoint?: WeaponSpawnPoint) {
+    protected spawnBullet(source: Entity, angleOffset: number, spawnPoint?: WeaponSpawnPoint): Bullet | null {
         if (!this._bullets)
-            return;
+            return null;
 
         const bullet: Bullet = this._bullets.get() as Bullet;
         if (bullet) {
@@ -45,5 +47,6 @@ export default class Weapon implements IComponent {
             const spawnY = spawnPoint ? spawnPoint.y : source.y + sourceForward.y * source.arcadeBody.radius;
             bullet.enable(spawnX, spawnY, bulletVelocity.x, bulletVelocity.y, this._bulletData);
         }
+        return bullet ?? null;
     }
 }
