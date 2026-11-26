@@ -19,7 +19,10 @@
         "dev-nolog": "vite --config vite/config.dev.mjs",
         "dev-mobile": "vite --config vite/config.dev.mjs --mode mobile",
         "build-nolog": "vite build --config vite/config.prod.mjs",
-        "atlas": "node tools/pack-atlas.mts"
+        "atlas": "node tools/pack-atlas.mts",
+        "server": "node server/index.mjs",
+        "dev-coop": "node server/index.mjs & vite --config vite/config.dev.mjs --mode mobile",
+        "coop-mobile": "vite build --config vite/config.prod.mjs && (node server/index.mjs & vite preview --config vite/config.dev.mjs --mode mobile)"
     },
     "devDependencies": {
         "@types/node": "^24.19.2",
@@ -30,6 +33,7 @@
     },
     "dependencies": {
         "phaser": "^3.90.0",
-        "terser": "^5.44.0"
+        "terser": "^5.44.0",
+        "ws": "^8.23.0"
     }
 }

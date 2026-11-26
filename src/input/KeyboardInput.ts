@@ -3,9 +3,11 @@ import {emptyInputState, IInputSource, InputState} from "./InputState.ts";
 
 export default class KeyboardInput implements IInputSource {
     private readonly _keys?: Phaser.Types.Input.Keyboard.CursorKeys;
+    private readonly _switchKey?: Phaser.Input.Keyboard.Key;
 
     constructor(scene: Scene) {
         this._keys = scene.input.keyboard?.createCursorKeys();
+        this._switchKey = scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.X);
     }
 
     public poll(): InputState {
@@ -21,6 +23,9 @@ export default class KeyboardInput implements IInputSource {
             state.moveX = axis;
 
         state.fire = this._keys.space.isDown;
+        // X or UP switches polarity
+        state.switchPolarity = Phaser.Input.Keyboard.JustDown(this._keys.up)
+            || (this._switchKey !== undefined && Phaser.Input.Keyboard.JustDown(this._switchKey));
 
         return state;
     }

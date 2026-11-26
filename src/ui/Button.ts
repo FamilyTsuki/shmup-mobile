@@ -1,4 +1,5 @@
 import {GameObjects, Input, Scene} from "phaser";
+import UiStyle from "./UiStyle.ts";
 
 export type ButtonStyle = {
     width: number;
@@ -15,11 +16,14 @@ export default class Button extends GameObjects.Container {
         width: 640,
         height: 150,
         fontSize: 56,
-        fillColor: 0x3a2d5c,
+        fillColor: UiStyle.PANEL,
     });
 
     private static readonly PRESSED_SCALE: number = 0.94;
-    private static readonly BORDER_COLOR: number = 0xffffff;
+    private static readonly BORDER_COLOR: number = UiStyle.CHROME;
+    private static readonly BORDER_WIDTH: number = 6;
+    private static readonly SHADOW_OFFSET: number = 10;
+    private static readonly SHADOW_COLOR: number = 0x0b0915;
     private static readonly DISABLED_ALPHA: number = 0.4;
 
     private readonly _background: GameObjects.Rectangle;
@@ -30,11 +34,13 @@ export default class Button extends GameObjects.Container {
                 style: ButtonStyle = Button.DEFAULT_STYLE) {
         super(scene, x, y);
 
+        // Flat retro panel: a hard shadow under a bordered box
+        const shadow = scene.add.rectangle(0, Button.SHADOW_OFFSET, style.width, style.height, Button.SHADOW_COLOR);
         this._background = scene.add.rectangle(0, 0, style.width, style.height, style.fillColor)
-            .setStrokeStyle(6, Button.BORDER_COLOR, 0.8);
-        this._label = scene.add.text(0, 0, text,
-            {fontSize: `${style.fontSize}px`, color: '#fff', fontFamily: 'future', align: 'center'}).setOrigin(0.5);
-        this.add([this._background, this._label]);
+            .setStrokeStyle(Button.BORDER_WIDTH, Button.BORDER_COLOR);
+        this._label = scene.add.text(0, 0, UiStyle.plainCapitals(text), {...UiStyle.text(style.fontSize), align: 'center'})
+            .setOrigin(0.5);
+        this.add([shadow, this._background, this._label]);
 
         this.setSize(style.width, style.height);
         this.setInteractive({useHandCursor: true});
@@ -60,7 +66,7 @@ export default class Button extends GameObjects.Container {
     }
 
     public setText(text: string): this {
-        this._label.setText(text);
+        this._label.setText(UiStyle.plainCapitals(text));
         return this;
     }
 

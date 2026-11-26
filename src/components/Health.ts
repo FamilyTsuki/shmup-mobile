@@ -9,7 +9,6 @@ export default class Health extends Phaser.Events.EventEmitter implements ICompo
 
     private _current: number;
     private _max: number;
-    private readonly _entity: Entity;
 
     public get current(): number {
         return this._current;
@@ -19,12 +18,14 @@ export default class Health extends Phaser.Events.EventEmitter implements ICompo
         return this._max;
     }
 
-    public constructor(value: number, entity: Entity) {
+    /**
+     * @param _owner entity that has this component, kept in the signature for the component pattern
+     */
+    public constructor(value: number, _owner: Entity) {
         super();
 
         this._current = value;
         this._max = value;
-        this._entity = entity;
     }
 
     /**
@@ -55,29 +56,9 @@ export default class Health extends Phaser.Events.EventEmitter implements ICompo
         if (emitEvents && this._current !== prev) {
             this.emit(Health.CHANGE_EVENT, this._current);
 
-            if (this._current <= 0 && prev > 0) {
-                const scene = this._entity.scene;
-                const explosion = scene.add.image(this._entity.x, this._entity.y, "sprites",
-                    "star1");
-
-                scene.tweens.add({
-                    targets: explosion,
-                    scale: [4, 8, 2, 0],
-                    ease: 'Back.easeOut',
-                    duration: 800
-                });
-
-                scene.tweens.add({
-                    targets: explosion,
-                    alpha: { from: 1, to: 0 },
-                    ease: 'Quad.easeIn',
-                    duration: 1000
-                }).once('complete', function(_tween: any, _targets: any){
-                    explosion.destroy();
-                }, this);
-
+            // Explosions are drawn by whoever listens to the death, see Effects
+            if (this._current <= 0 && prev > 0)
                 this.emit(Health.DEATH_EVENT);
-            }
         }
     }
 }

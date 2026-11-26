@@ -1,40 +1,67 @@
 import {Physics, Scene, Time} from "phaser";
 import Entity from "./Entity.ts";
+import Bullet from "./Bullet.ts";
 import Health from "../components/Health.ts";
 import SpreadWeapon from "../components/SpreadWeapon.ts";
-import {toBulletData} from "../gameData/BulletData.ts";
-import type {BossData, BossPatternData, BossPhaseData} from "../gameData/BossData.ts";
+import {BulletData, toBulletData} from "../gameData/BulletData.ts";
+import type {BossData, BossPatternData, BossPhaseData, PatternPolarity} from "../gameData/BossData.ts";
+import {oppositePolarity, Polarity, POLARITY_STYLES, resolvePolarity} from "../gameData/PolarityData.ts";
+import TextureFactory from "../utils/TextureFactory.ts";
 
-type BossState = 'entering' | 'fighting' | 'dead';
+type BossState = 'entering' | 'talking' | 'fighting' | 'dead';
+
+/** What a boss aims at: the player, read for its position and polarity */
+type BossTarget = Entity & { polarity: Polarity };
 
 /**
- * Enters from the top, then sways while running the shooting patterns of its current phase.
- * Phases change when health drops below their threshold.
+ * Enters from the top, says its lines, then moves and runs the patterns of its current phase.
+ * Phases change when health drops below their threshold. Its hull has a polarity, that some phases flip over time.
  */
 export default class Boss extends Entity {
     /** Emitted on the scene events when the boss dies */
     public static readonly DEFEATED_EVENT: string = 'bossDefeated';
     /** (phaseIndex: number) emitted on the scene events */
     public static readonly PHASE_CHANGED_EVENT: string = 'bossPhaseChanged';
-    /** (enemyType: string, x: number, y: number) emitted on the scene events */
+    /** (enemyType: string, x: number, y: number, polarity: Polarity) emitted on the scene events */
     public static readonly SUMMON_EVENT: string = 'bossSummon';
+    /** (polarity: Polarity) emitted on the scene events when the hull changes polarity */
+    public static readonly POLARITY_CHANGED_EVENT: string = 'bossPolarityChanged';
+    /** (speaker: string, lines: string[], lineMs: number) emitted on the scene events */
+    public static readonly SPEAK_EVENT: string = 'bossSpeak';
+
+    /** Time each dialogue line stays on screen */
+    public static readonly LINE_MS: number = 2300;
 
     private static readonly ENTRY_SPEED: number = 0.15;
     private static readonly HIT_FLASH_MS: number = 40;
     private static readonly PHASE_PAUSE_MS: number = 900;
-    private static readonly DEATH_EXPLOSIONS: number = 8;
+    private static readonly DEATH_EXPLOSIONS: number = 10;
+    private static readonly JUMP_MS: number = 260;
+    private static readonly SCREEN_MARGIN: number = 160;
+    /** Lowest point of a lunge, above the bottom of the screen */
+    private static readonly LUNGE_BOTTOM_MARGIN: number = 150;
+    /** Traps are never placed this close to the player */
+    private static readonly TRAP_SAFE_DISTANCE: number = 260;
 
     private readonly _data: BossData;
     private readonly _bullets: Physics.Arcade.Group;
-    private readonly _target: Entity;
-    private readonly _tint: number | null;
+    /** A living player, picked again for each attack */
+    private readonly _findTarget: () => BossTarget | null;
     private _state: BossState = 'entering';
     private _phaseIndex: number = 0;
+    private _polarity: Polarity;
     private _patternTimers: Time.TimerEvent[] = [];
     private _swayTime: number = 0;
+    private _nextJumpMs: number = 0;
+    /** True while a lunge or a jump tween moves the boss */
+    private _busy: boolean = false;
 
     public get bossData(): BossData {
         return this._data;
+    }
+
+    public get polarity(): Polarity {
+        return this._polarity;
     }
 
     public get healthRatio(): number {
@@ -42,24 +69,24 @@ export default class Boss extends Entity {
         return health.current / health.max;
     }
 
-    constructor(scene: Scene, data: BossData, bullets: Physics.Arcade.Group, target: Entity, difficulty: number) {
-        super(scene, scene.cameras.main.centerX, 0, 'sprites', data.texture);
+    constructor(scene: Scene, data: BossData, bullets: Physics.Arcade.Group, findTarget: () => BossTarget | null,
+                difficulty: number) {
+        super(scene, scene.cameras.main.centerX, 0, TextureFactory.shipKey(data.texture, data.phases[0].polarity));
 
         this._data = data;
         this._bullets = bullets;
-        this._target = target;
-        this._tint = data.tint ? Phaser.Display.Color.HexStringToColor(data.tint).color : null;
+        this._findTarget = findTarget;
+        this._polarity = data.phases[0].polarity;
 
         this.setScale(data.scale);
         this.angle = 90;
         this.y = -this.displayHeight / 2;
-        this.restoreTint();
 
-        const radius = Math.min(this.width, this.height) / 2;
-        this.arcadeBody.setCircle(radius, (this.width - radius * 2) / 2, (this.height - radius * 2) / 2);
+        const radius = TextureFactory.bodyData(scene, this.texture.key).hitRadius;
+        this.arcadeBody.setCircle(radius, this.width / 2 - radius, this.height / 2 - radius);
 
         const health = new Health(Math.round(data.health * difficulty), this);
-        // Invulnerable until it reaches its position
+        // Invulnerable until it reaches its position and finishes talking
         health.enabled = false;
         this.addComponent(health);
 
@@ -69,11 +96,49 @@ export default class Boss extends Entity {
 
     private onHealthChanged() {
         this.setTintFill(0xffffff);
-        this.scene.time.delayedCall(Boss.HIT_FLASH_MS, () => this.restoreTint());
+        this.scene.time.delayedCall(Boss.HIT_FLASH_MS, () => this.clearTint());
 
         const nextPhase = this._data.phases[this._phaseIndex + 1];
         if (nextPhase && this.healthRatio <= nextPhase.healthBelow && this.healthRatio > 0)
             this.startPhase(this._phaseIndex + 1);
+    }
+
+    private speak(lines: string[]) {
+        this.scene.events.emit(Boss.SPEAK_EVENT, this._data.name, lines, Boss.LINE_MS);
+    }
+
+    private startFight() {
+        const intro = this._data.intro ?? [];
+        if (intro.length === 0) {
+            this.beginPhases();
+            return;
+        }
+
+        this._state = 'talking';
+        this.speak(intro);
+        this.scene.time.delayedCall(intro.length * Boss.LINE_MS, () => this.beginPhases());
+    }
+
+    private beginPhases() {
+        if (this._state === 'dead')
+            return;
+        this._state = 'fighting';
+        this.getComponent(Health)!.enabled = true;
+        this.startPhase(0);
+    }
+
+    private setPolarity(polarity: Polarity) {
+        this._polarity = polarity;
+        this.setTexture(TextureFactory.shipKey(this._data.texture, polarity));
+        this.scene.events.emit(Boss.POLARITY_CHANGED_EVENT, polarity);
+
+        // A ring announces the flip
+        const ring = this.scene.add.image(this.x, this.y, TextureFactory.RING_KEY)
+            .setTint(POLARITY_STYLES[polarity].color).setDepth(40);
+        this.scene.tweens.add({
+            targets: ring, scale: {from: 0.8, to: 3.2}, alpha: {from: 1, to: 0}, duration: 450,
+            onComplete: () => ring.destroy()
+        });
     }
 
     private startPhase(index: number) {
@@ -81,43 +146,198 @@ export default class Boss extends Entity {
         this.stopPatterns();
         this.scene.events.emit(Boss.PHASE_CHANGED_EVENT, index);
 
+        const phase: BossPhaseData = this._data.phases[index];
+        this.setPolarity(phase.polarity);
+        if (phase.say)
+            this.speak([phase.say]);
+
         // A short breather so the player sees the phase change before the new patterns
         this.scene.time.delayedCall(index === 0 ? 0 : Boss.PHASE_PAUSE_MS, () => {
             if (this._state !== 'fighting' || this._phaseIndex !== index)
                 return;
 
-            const phase: BossPhaseData = this._data.phases[index];
             this._patternTimers = phase.patterns.map(pattern => this.startPattern(pattern));
+            if (phase.polarityCycleMs) {
+                this._patternTimers.push(this.scene.time.addEvent({
+                    delay: phase.polarityCycleMs,
+                    loop: true,
+                    callback: () => this.setPolarity(oppositePolarity(this._polarity))
+                }));
+            }
         });
     }
 
-    private startPattern(pattern: BossPatternData): Time.TimerEvent {
-        if (pattern.type === 'summon') {
-            return this.scene.time.addEvent({
-                delay: pattern.delayMs,
-                loop: true,
-                callback: () => {
-                    for (let i = 0; i < pattern.count; i++)
-                        this.scene.events.emit(Boss.SUMMON_EVENT, pattern.enemy, this.x + (i - (pattern.count - 1) / 2) * 160, 0);
-                }
-            });
+    private resolvePatternPolarity(rule: PatternPolarity | undefined, shot: number): Polarity {
+        if (rule === undefined)
+            return this._polarity;
+        if (rule === 'counter') {
+            const target = this._findTarget();
+            return target ? oppositePolarity(target.polarity) : this._polarity;
         }
+        return resolvePolarity(rule, shot);
+    }
 
-        const weapon = new SpreadWeapon(this._bullets, toBulletData(pattern.bullet), pattern.bulletCount,
-            pattern.spreadAngleDeg);
-        let rotationDeg = 0;
+    private startPattern(pattern: BossPatternData): Time.TimerEvent {
+        let shots = 0;
+        let fire: () => void;
+
+        switch (pattern.type) {
+            case 'summon':
+                fire = () => {
+                    for (let i = 0; i < pattern.count; i++) {
+                        this.scene.events.emit(Boss.SUMMON_EVENT, pattern.enemy,
+                            this.x + (i - (pattern.count - 1) / 2) * 160, 0, resolvePolarity('alternate', i));
+                    }
+                };
+                break;
+            case 'fan': {
+                const bulletData = toBulletData(pattern.bullet, this._polarity);
+                const weapon = new SpreadWeapon(this._bullets, bulletData, pattern.bulletCount, pattern.spreadAngleDeg);
+                let rotationDeg = 0;
+                fire = () => {
+                    let angleOffset = Phaser.Math.DegToRad(rotationDeg);
+                    const target = this._findTarget();
+                    if (pattern.aimed && target)
+                        angleOffset += Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y) - this.rotation;
+
+                    bulletData.polarity = this.resolvePatternPolarity(pattern.polarity, shots);
+                    weapon.shoot(this, angleOffset);
+                    rotationDeg += pattern.rotateDegPerShot ?? 0;
+                };
+                break;
+            }
+            case 'curtain':
+                fire = () => this.fireCurtain(pattern, this.resolvePatternPolarity(pattern.polarity, shots));
+                break;
+            case 'ring':
+                fire = () => this.fireRing(pattern, this.resolvePatternPolarity(pattern.polarity, shots));
+                break;
+            case 'lunge':
+                fire = () => this.lunge(pattern.warnMs, pattern.speed);
+                break;
+            case 'boomerang':
+                fire = () => {
+                    const target = this._findTarget();
+                    if (!target)
+                        return;
+                    const data = toBulletData(pattern.bullet, this.resolvePatternPolarity(pattern.polarity, shots));
+                    const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
+                    this.spawnBullet(this.x, this.y, angle, data)?.returnAfter(pattern.returnAfterMs, this);
+                };
+                break;
+            case 'traps':
+                fire = () => this.fireTraps(pattern, this.resolvePatternPolarity(pattern.polarity, shots));
+                break;
+        }
 
         return this.scene.time.addEvent({
             delay: pattern.delayMs,
             loop: true,
             callback: () => {
-                let angleOffset = Phaser.Math.DegToRad(rotationDeg);
-                if (pattern.aimed && this._target.active)
-                    angleOffset += Phaser.Math.Angle.Between(this.x, this.y, this._target.x, this._target.y) - this.rotation;
-
-                weapon.shoot(this, angleOffset);
-                rotationDeg += pattern.rotateDegPerShot ?? 0;
+                if (this._state !== 'fighting')
+                    return;
+                fire();
+                shots++;
             }
+        });
+    }
+
+    private spawnBullet(x: number, y: number, angle: number, data: BulletData): Bullet | null {
+        const bullet = this._bullets.get() as Bullet | null;
+        bullet?.enable(x, y, Math.cos(angle) * data.speed, Math.sin(angle) * data.speed, data);
+        return bullet;
+    }
+
+    /** A falling row with one gap, never right where the gap was last time */
+    private fireCurtain(pattern: Extract<BossPatternData, { type: 'curtain' }>, polarity: Polarity) {
+        const width = this.scene.cameras.main.width;
+        const data = toBulletData(pattern.bullet, polarity);
+        const gapCenter = Phaser.Math.Between(pattern.gapWidth / 2 + 40, width - pattern.gapWidth / 2 - 40);
+        for (let x = pattern.spacing / 2; x < width; x += pattern.spacing) {
+            if (Math.abs(x - gapCenter) < pattern.gapWidth / 2)
+                continue;
+            this.spawnBullet(x, 0, Math.PI / 2, data);
+        }
+    }
+
+    /** Closes in on where the player was when the ring appeared: moving out of it is the way out */
+    private fireRing(pattern: Extract<BossPatternData, { type: 'ring' }>, polarity: Polarity) {
+        const target = this._findTarget();
+        if (!target)
+            return;
+        const data = toBulletData(pattern.bullet, polarity);
+        const centerX = target.x;
+        const centerY = target.y;
+        for (let i = 0; i < pattern.bulletCount; i++) {
+            const angle = i * Math.PI * 2 / pattern.bulletCount;
+            const x = centerX + Math.cos(angle) * pattern.radius;
+            const y = centerY + Math.sin(angle) * pattern.radius;
+            this.spawnBullet(x, y, angle + Math.PI, data)?.holdThenLaunch(pattern.holdMs, {x: centerX, y: centerY});
+        }
+    }
+
+    private fireTraps(pattern: Extract<BossPatternData, { type: 'traps' }>, polarity: Polarity) {
+        const {width, height} = this.scene.cameras.main;
+        const data = toBulletData(pattern.bullet, polarity);
+        const target = this._findTarget();
+        for (let i = 0, placed = 0; placed < pattern.count && i < pattern.count * 10; i++) {
+            const x = Phaser.Math.Between(80, width - 80);
+            const y = Phaser.Math.Between(height * 0.35, height - 120);
+            if (target && Phaser.Math.Distance.Between(x, y, target.x, target.y) < Boss.TRAP_SAFE_DISTANCE)
+                continue;
+            const trap = this.spawnBullet(x, y, 0, data);
+            trap?.holdThenLaunch(pattern.lifetimeMs, {x, y});
+            trap?.expireAfter(pattern.lifetimeMs);
+            // Pops in so the player sees it appear
+            if (trap) {
+                const scale = trap.scale;
+                this.scene.tweens.add({targets: trap, scale: {from: 0, to: scale}, duration: 200, ease: 'Back.easeOut'});
+            }
+            placed++;
+        }
+    }
+
+    /** Flashes as a warning, dives at the player column, then goes back up */
+    private lunge(warnMs: number, speed: number) {
+        const target = this._findTarget();
+        if (this._busy || !target)
+            return;
+        this._busy = true;
+
+        const startX = this.x;
+        const startY = this.y;
+        this.scene.tweens.add({
+            targets: this, alpha: 0.4, duration: warnMs / 6, yoyo: true, repeat: 2,
+            onComplete: () => {
+                if (this._state !== 'fighting') {
+                    this._busy = false;
+                    return;
+                }
+                const targetX = target.x;
+                const targetY = this.scene.cameras.main.height - Boss.LUNGE_BOTTOM_MARGIN;
+                const distance = Phaser.Math.Distance.Between(this.x, this.y, targetX, targetY);
+                this.scene.tweens.chain({
+                    targets: this,
+                    tweens: [
+                        {x: targetX, y: targetY, duration: distance / speed, ease: 'Quad.easeIn'},
+                        {x: startX, y: startY, duration: distance / speed * 2, ease: 'Quad.easeOut', delay: 200},
+                    ],
+                    onComplete: () => this._busy = false,
+                });
+            }
+        });
+    }
+
+    private jump() {
+        const camera = this.scene.cameras.main;
+        const amplitude = this._data.moveAmplitude;
+        const x = Phaser.Math.Clamp(this.x + Phaser.Math.Between(-amplitude, amplitude),
+            Boss.SCREEN_MARGIN, camera.width - Boss.SCREEN_MARGIN);
+        const y = this._data.entryY + Phaser.Math.Between(-120, 120);
+        this._busy = true;
+        this.scene.tweens.add({
+            targets: this, x, y, duration: Boss.JUMP_MS, ease: 'Cubic.easeOut',
+            onComplete: () => this._busy = false
         });
     }
 
@@ -129,17 +349,22 @@ export default class Boss extends Entity {
     private die() {
         this._state = 'dead';
         this.stopPatterns();
+        this.scene.tweens.killTweensOf(this);
+        this.setAlpha(1);
         this.arcadeBody.setEnable(false);
+        if (this._data.defeatLine)
+            this.speak([this._data.defeatLine]);
 
-        // A chain of explosions over the hull before it disappears
+        // A chain of explosions over the hull, in both colors, before it disappears
         for (let i = 0; i < Boss.DEATH_EXPLOSIONS; i++) {
-            this.scene.time.delayedCall(i * 120, () => {
+            this.scene.time.delayedCall(i * 110, () => {
+                const color = POLARITY_STYLES[i % 2 === 0 ? 'ion' : 'plasma'].color;
                 const explosion = this.scene.add.image(
                     this.x + Phaser.Math.Between(-this.displayWidth / 3, this.displayWidth / 3),
                     this.y + Phaser.Math.Between(-this.displayHeight / 3, this.displayHeight / 3),
-                    'sprites', 'star1').setTint(0xffd166);
+                    TextureFactory.RING_KEY).setTint(color).setDepth(40);
                 this.scene.tweens.add({
-                    targets: explosion, scale: {from: 2, to: 7}, alpha: {from: 1, to: 0}, duration: 600,
+                    targets: explosion, scale: {from: 0.3, to: 1.6}, alpha: {from: 1, to: 0}, duration: 600,
                     onComplete: () => explosion.destroy()
                 });
             });
@@ -147,19 +372,12 @@ export default class Boss extends Entity {
 
         this.scene.cameras.main.shake(800, 0.02);
         this.scene.tweens.add({
-            targets: this, alpha: 0, duration: Boss.DEATH_EXPLOSIONS * 120, delay: 200,
+            targets: this, alpha: 0, duration: Boss.DEATH_EXPLOSIONS * 110, delay: 600,
             onComplete: () => {
                 this.scene.events.emit(Boss.DEFEATED_EVENT, this);
                 this.destroy();
             }
         });
-    }
-
-    private restoreTint() {
-        if (this._tint === null)
-            this.clearTint();
-        else
-            this.setTint(this._tint);
     }
 
     preUpdate(timeSinceLaunch: number, deltaTime: number) {
@@ -169,16 +387,25 @@ export default class Boss extends Entity {
             this.y += Boss.ENTRY_SPEED * deltaTime;
             if (this.y >= this._data.entryY) {
                 this.y = this._data.entryY;
-                this._state = 'fighting';
-                this.getComponent(Health)!.enabled = true;
-                this.startPhase(0);
+                this.startFight();
             }
             return;
         }
 
-        if (this._state === 'fighting') {
-            this._swayTime += deltaTime * this._data.phases[this._phaseIndex].moveSpeedFactor;
-            this.x = this.scene.cameras.main.centerX + Math.sin(this._swayTime * this._data.moveSpeed) * this._data.moveAmplitude;
+        if (this._state !== 'fighting' || this._busy)
+            return;
+
+        const speedFactor = this._data.phases[this._phaseIndex].moveSpeedFactor;
+        if (this._data.movement === 'duelist') {
+            this._nextJumpMs -= deltaTime * speedFactor;
+            if (this._nextJumpMs <= 0) {
+                this._nextJumpMs = this._data.repositionMs ?? 1500;
+                this.jump();
+            }
+            return;
         }
+
+        this._swayTime += deltaTime * speedFactor;
+        this.x = this.scene.cameras.main.centerX + Math.sin(this._swayTime * this._data.moveSpeed) * this._data.moveAmplitude;
     }
 }

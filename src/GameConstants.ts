@@ -6,6 +6,11 @@ export default class GameConstants {
         /** (text: string) big centered message on the HUD */
         BANNER_EVENT: "banner",
         BOMB_REQUESTED_EVENT: "bombRequested",
+        POLARITY_REQUESTED_EVENT: "polarityRequested",
+        /** (speaker: string, lines: string[], lineMs: number) dialogue box on the HUD */
+        DIALOGUE_EVENT: "dialogue",
+        /** (text: string) smaller tutorial message under the banner */
+        HINT_EVENT: "hint",
     } as const);
 
     public static readonly SceneKeys = Object.freeze({
@@ -17,6 +22,8 @@ export default class GameConstants {
         OPTIONS: "OptionsScene",
         LEVEL_SELECT: "LevelSelectScene",
         SHOP: "ShopScene",
+        LOBBY: "LobbyScene",
+        REMOTE_GAME: "RemoteGameScene",
     } as const);
 
     public static readonly DataKeys = Object.freeze({
@@ -26,6 +33,8 @@ export default class GameConstants {
         POWER_UPS: "powerUps",
         UPGRADES: "upgrades",
         PLAYER_SHIPS: "playerShips",
+        POLARITY: "polarity",
+        COOP: "coop",
     } as const);
 
     public static readonly MAX_SCORE_DIGITS: number = 6;

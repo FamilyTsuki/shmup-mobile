@@ -5,13 +5,17 @@ import {upgradeCost, UpgradesData} from "../gameData/UpgradeData.ts";
 import Progress from "../managers/Progress.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import Button, {ButtonStyle} from "../ui/Button.ts";
+import TextureFactory from "../utils/TextureFactory.ts";
+import Backdrop from "../effects/Backdrop.ts";
+import UiStyle from "../ui/UiStyle.ts";
+
 
 /**
  * Spends banked credits on permanent upgrades and ships. Rebuilt after each purchase.
  */
 export default class ShopScene extends Scene {
-    private static readonly BUY_BUTTON: ButtonStyle = {width: 280, height: 130, fontSize: 40, fillColor: 0x2d5c3a};
-    private static readonly SHIP_BUTTON: ButtonStyle = {width: 300, height: 100, fontSize: 34, fillColor: 0x2d5c3a};
+    private static readonly BUY_BUTTON: ButtonStyle = {width: 280, height: 130, fontSize: 40, fillColor: UiStyle.PANEL};
+    private static readonly SHIP_BUTTON: ButtonStyle = {width: 300, height: 100, fontSize: 34, fillColor: UiStyle.PANEL};
     private static readonly FIRST_UPGRADE_Y: number = 400;
     private static readonly UPGRADE_ROW_HEIGHT: number = 170;
     private static readonly SHIPS_Y: number = 1440;
@@ -27,8 +31,8 @@ export default class ShopScene extends Scene {
     // noinspection JSUnusedGlobalSymbols
     create() {
         this._content = [];
-        this.add.text(this.scale.width / 2, 130, 'BOUTIQUE', {fontSize: '100px', color: '#fff', fontFamily: 'future'})
-            .setOrigin(0.5);
+        new Backdrop(this, 0.5);
+        this.add.text(this.scale.width / 2, 130, 'BOUTIQUE', UiStyle.text(100)).setOrigin(0.5);
         new Button(this, this.scale.width / 2, 1845, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
 
         this.build();
@@ -40,7 +44,7 @@ export default class ShopScene extends Scene {
 
         const credits = Progress.getCredits(this.saveManager);
         this.track(this.add.text(this.scale.width / 2, 250, `$ ${credits}`,
-            {fontSize: '64px', color: '#ffd166', fontFamily: 'future'}).setOrigin(0.5));
+            UiStyle.text(64, '#ffd166', '#ffb347')).setOrigin(0.5));
 
         this.buildUpgrades(credits);
         this.buildShips(credits);
@@ -56,13 +60,12 @@ export default class ShopScene extends Scene {
             const maxed = level >= upgrade.maxLevel;
             const cost = upgradeCost(upgrade, level);
 
-            this.track(this.add.text(ShopScene.LEFT_X, y - 50, upgrade.name.toUpperCase(),
-                {fontSize: '46px', color: '#fff', fontFamily: 'future'}));
-            this.track(this.add.text(ShopScene.LEFT_X, y + 6, upgrade.description,
-                {fontSize: '32px', color: '#bbb'}));
+            this.track(this.add.text(ShopScene.LEFT_X, y - 50, UiStyle.upper(upgrade.name),
+                UiStyle.text(46)));
+            this.track(this.add.text(ShopScene.LEFT_X, y + 6, upgrade.description, UiStyle.body(32)));
             for (let pip = 0; pip < upgrade.maxLevel; pip++) {
                 this.track(this.add.rectangle(ShopScene.LEFT_X + pip * 52, y + 64, 40, 18,
-                    pip < level ? 0x7bd389 : 0x333333).setOrigin(0, 0.5).setStrokeStyle(2, 0x7bd389));
+                    pip < level ? UiStyle.SUCCESS : UiStyle.PANEL).setOrigin(0, 0.5).setStrokeStyle(2, UiStyle.SUCCESS));
             }
 
             const button = new Button(this, this.scale.width - 200, y + 10, maxed ? 'MAX' : `$ ${cost}`, () => {
@@ -83,19 +86,19 @@ export default class ShopScene extends Scene {
         const columnWidth = this.scale.width / entries.length;
 
         this.track(this.add.text(this.scale.width / 2, ShopScene.SHIPS_Y - 80, 'VAISSEAUX',
-            {fontSize: '46px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5));
+            UiStyle.text(46)).setOrigin(0.5));
 
         entries.forEach(([idText, ship], index) => {
             const id = Number(idText);
             const x = columnWidth * (index + 0.5);
             const owned = unlocked.includes(id);
 
-            this.track(this.add.image(x, ShopScene.SHIPS_Y, 'sprites', ship.texture).setAngle(-90)
+            this.track(this.add.image(x, ShopScene.SHIPS_Y, TextureFactory.shipKey(ship.texture, index % 2 === 0 ? 'ion' : 'plasma')).setAngle(-90)
                 .setAlpha(owned ? 1 : 0.5));
-            this.track(this.add.text(x, ShopScene.SHIPS_Y + 70, ship.name.toUpperCase(),
-                {fontSize: '30px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5));
+            this.track(this.add.text(x, ShopScene.SHIPS_Y + 70, UiStyle.upper(ship.name),
+                UiStyle.text(30)).setOrigin(0.5));
             this.track(this.add.text(x, ShopScene.SHIPS_Y + 108, ship.description,
-                {fontSize: '22px', color: '#bbb', align: 'center', wordWrap: {width: columnWidth - 30}}).setOrigin(0.5, 0));
+                {...UiStyle.body(22), align: 'center', wordWrap: {width: columnWidth - 30}}).setOrigin(0.5, 0));
 
             let label: string;
             let enabled: boolean;

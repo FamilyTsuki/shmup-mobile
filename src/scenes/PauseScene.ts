@@ -4,6 +4,13 @@ import GyroSensor from "../input/GyroSensor.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import Settings from "../managers/Settings.ts";
 import Button from "../ui/Button.ts";
+import UiStyle from "../ui/UiStyle.ts";
+import Net from "../net/Net.ts";
+
+export type PauseSceneData = {
+    /** The paused game scene, the solo or host game when omitted */
+    gameKey?: string;
+};
 
 /**
  * Overlay shown on top of the paused game.
@@ -13,18 +20,22 @@ export default class PauseScene extends Scene {
     private static readonly RESUME_DELAY_MS: number = 300;
 
     private saveManager: SaveManager;
+    private _gameKey: string = GameConstants.SceneKeys.MAIN_GAME;
 
     constructor() {
         super(GameConstants.SceneKeys.PAUSE);
     }
 
     // noinspection JSUnusedGlobalSymbols
-    create() {
+    create(data: PauseSceneData) {
         const {width, height} = this.scale;
         const centerX = width / 2;
+        this._gameKey = data?.gameKey ?? GameConstants.SceneKeys.MAIN_GAME;
 
-        this.add.rectangle(0, 0, width, height, 0x000000, 0.7).setOrigin(0).setInteractive();
-        this.add.text(centerX, 560, 'PAUSE', {fontSize: '128px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
+        this.add.rectangle(0, 0, width, height, 0x0f0c1d, 0.8).setOrigin(0).setInteractive();
+        this.add.text(centerX, 560, Net.role === 'guest' ? 'MENU' : 'PAUSE', UiStyle.text(128)).setOrigin(0.5);
+        if (Net.role === 'guest')
+            this.add.text(centerX, 700, "La partie continue chez l'hôte", UiStyle.body(40)).setOrigin(0.5);
 
         new Button(this, centerX, 900, 'REPRENDRE', () => this.resumeGame());
         if (Settings.getControls(this.saveManager).mode === 'gyro') {
@@ -43,13 +54,24 @@ export default class PauseScene extends Scene {
     }
 
     private resumeGame() {
-        this.scene.resume(GameConstants.SceneKeys.MAIN_GAME);
+        this.scene.resume(this._gameKey);
         this.scene.stop();
     }
 
+    /**
+     * Coop: a guest leaves the room; the host stops the game for everyone and goes back to the room.
+     */
     private quitGame() {
-        this.scene.stop(GameConstants.SceneKeys.MAIN_GAME);
+        this.scene.stop(this._gameKey);
         this.scene.stop(GameConstants.SceneKeys.MAIN_UI);
-        this.scene.start(GameConstants.SceneKeys.HOME);
+        if (Net.role === 'guest') {
+            Net.leave();
+            this.scene.start(GameConstants.SceneKeys.HOME);
+        } else if (Net.role === 'host') {
+            Net.sendToGuests({k: 'abort'});
+            this.scene.start(GameConstants.SceneKeys.LOBBY, {});
+        } else {
+            this.scene.start(GameConstants.SceneKeys.HOME);
+        }
     }
 }

@@ -5,11 +5,11 @@
     "price": 0,
     "bonus": {},
     "movementSpeed": 0.6,
-    "texture": "playerShip1_blue",
+    "texture": "arrow",
     "body": {
-      "radius": 42,
-      "offsetX": -4,
-      "offsetY": 16
+      "radius": 14,
+      "offsetX": 23.5,
+      "offsetY": 23.5
     }
   },
   "2": {
@@ -20,11 +20,11 @@
       "bulletCount": 1
     },
     "movementSpeed": 0.9,
-    "texture": "playerShip2_blue",
+    "texture": "interceptor",
     "body": {
-      "radius": 42,
-      "offsetX": -4,
-      "offsetY": 16
+      "radius": 14,
+      "offsetX": 23.5,
+      "offsetY": 23.5
     }
   },
   "3": {
@@ -36,11 +36,11 @@
       "maxHealth": 1
     },
     "movementSpeed": 1.2,
-    "texture": "playerShip3_blue",
+    "texture": "bolt",
     "body": {
-      "radius": 42,
-      "offsetX": -4,
-      "offsetY": 16
+      "radius": 14,
+      "offsetX": 23.5,
+      "offsetY": 23.5
     }
   }
 }

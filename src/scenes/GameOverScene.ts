@@ -5,7 +5,11 @@ import Progress from "../managers/Progress.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import Button from "../ui/Button.ts";
 import launchGame from "./launchGame.ts";
+import Net from "../net/Net.ts";
 import type {RunResultData} from "./MainGameScene.ts";
+import Backdrop from "../effects/Backdrop.ts";
+import UiStyle from "../ui/UiStyle.ts";
+
 
 /**
  * Results of a run, won or lost, and where to go next.
@@ -28,31 +32,44 @@ export default class GameOverScene extends Scene {
         const levels = (this.cache.json.get(GameConstants.DataKeys.LEVELS) as LevelsData).levels;
         const hasNextLevel = result.victory && result.level + 1 < levels.length;
 
-        this.add.text(centerX, 300, result.victory ? 'VICTOIRE' : 'DÉFAITE',
-            {fontSize: '128px', color: result.victory ? '#7bd389' : '#ff4d6d', fontFamily: 'future'}).setOrigin(0.5);
+        new Backdrop(this, 0.5);
+        this.add.text(centerX, 300, result.victory ? 'VICTOIRE' : 'DEFAITE',
+            UiStyle.text(128, '#ffffff', result.victory ? '#7bffb0' : '#ff3d9a')).setOrigin(0.5);
         this.add.text(centerX, 430, `Niveau ${result.level + 1} - ${levels[result.level].name}`,
-            {fontSize: '44px', color: '#fff'}).setOrigin(0.5);
+            UiStyle.body(44, '#ffffff')).setOrigin(0.5);
 
         const lines: [string, string][] = [
             ['SCORE', String(result.score)],
             ['ENNEMIS', String(result.kills)],
-            ['CRÉDITS GAGNÉS', `+ ${result.credits}`],
+            ['CREDITS GAGNES', `+ ${result.credits}`],
             ['TOTAL', `$ ${Progress.getCredits(this.saveManager)}`],
         ];
         lines.forEach(([label, value], index) => {
             const y = 600 + index * 100;
-            this.add.text(140, y, label, {fontSize: '46px', color: '#bbb', fontFamily: 'future'}).setOrigin(0, 0.5);
-            this.add.text(this.scale.width - 140, y, value, {fontSize: '52px', color: '#ffd166', fontFamily: 'future'})
-                .setOrigin(1, 0.5);
+            this.add.text(140, y, label, UiStyle.text(46, UiStyle.MUTED_CSS)).setOrigin(0, 0.5);
+            this.add.text(this.scale.width - 140, y, value, UiStyle.text(52, '#ffd166', '#ffb347')).setOrigin(1, 0.5);
         });
 
         if (result.newBestScore) {
             const record = this.add.text(centerX, 1010, 'NOUVEAU RECORD !',
-                {fontSize: '60px', color: '#ff8c42', fontFamily: 'future'}).setOrigin(0.5);
+                UiStyle.text(60, '#ffe7a3', '#ffb347')).setOrigin(0.5);
             this.tweens.add({targets: record, scale: 1.12, duration: 450, yoyo: true, repeat: -1});
         }
         if (result.victory && !hasNextLevel)
-            this.add.text(centerX, 1100, 'La flotte est vaincue. Bravo !', {fontSize: '40px', color: '#fff'}).setOrigin(0.5);
+            this.add.text(centerX, 1100, 'La flotte est vaincue. Bravo !', UiStyle.body(40, '#ffffff')).setOrigin(0.5);
+
+        // Coop guest: the host picks what comes next, the guest can only leave
+        if (Net.role === 'guest') {
+            const waiting = this.add.text(centerX, 1250, "En attente de l'hôte...", UiStyle.body(44, '#ffffff')).setOrigin(0.5);
+            this.tweens.add({targets: waiting, alpha: 0.3, duration: 600, yoyo: true, repeat: -1});
+            this.time.delayedCall(GameOverScene.INPUT_DELAY_MS, () => {
+                new Button(this, centerX, 1500, 'QUITTER LE SALON', () => {
+                    Net.leave();
+                    this.scene.start(GameConstants.SceneKeys.HOME);
+                });
+            });
+            return;
+        }
 
         // Buttons appear after a short delay so a finger still on the screen does not press one
         this.time.delayedCall(GameOverScene.INPUT_DELAY_MS, () => {
@@ -63,7 +80,9 @@ export default class GameOverScene extends Scene {
             }
             new Button(this, centerX, y, 'REJOUER', () => launchGame(this, this.saveManager, result.level));
             new Button(this, centerX, y + 180, 'BOUTIQUE', () => this.scene.start(GameConstants.SceneKeys.SHOP));
-            new Button(this, centerX, y + 360, 'MENU', () => this.scene.start(GameConstants.SceneKeys.HOME));
+            // Coop host: back to the room, the guests stay connected
+            new Button(this, centerX, y + 360, Net.role === 'host' ? 'SALON' : 'MENU',
+                () => this.scene.start(Net.role === 'host' ? GameConstants.SceneKeys.LOBBY : GameConstants.SceneKeys.HOME, {}));
         });
 
         // Ignore the OS key repeat: SPACE is often still held from shooting when the run ends

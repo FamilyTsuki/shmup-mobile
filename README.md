@@ -28,4 +28,5 @@ Le serveur de dev (`npm run dev-nolog`) peut rester lancé pendant `git go` : il
 
 ## Credits
 - [Phaser](https://phaser.io/) for the game engine
-- [Kenney](https://kenney.nl/) for the assets (CC0 license — https://kenney.nl/support)
+- [Kenney](https://kenney.nl/) for the sound effects (CC0 license — https://kenney.nl/support)
+- [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) by CodeMan38, SIL Open Font License (`public/assets/Fonts/PressStart2P-OFL.txt`)

@@ -9,6 +9,10 @@ export type InputState = {
     /** Rotation axis in [-1, 1] */
     rotate: number;
     fire: boolean;
+    /** True for the single poll right after the player asked to switch polarity */
+    switchPolarity: boolean;
+    /** Coop guest: the guest moved its ship itself, this is where it is. Overrides the other axes */
+    absoluteX?: number;
 };
 
 export interface IInputSource {
@@ -17,5 +21,5 @@ export interface IInputSource {
 }
 
 export function emptyInputState(): InputState {
-    return {moveX: 0, dragX: 0, rotate: 0, fire: false};
+    return {moveX: 0, dragX: 0, rotate: 0, fire: false, switchPolarity: false};
 }

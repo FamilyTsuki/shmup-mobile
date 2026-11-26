@@ -20,9 +20,8 @@ export type EnemyWeaponData = {
 };
 
 export type EnemyData = {
+    /** Ship shape drawn by TextureFactory, the polarity picks its color */
     texture: string;
-    /** "#rrggbb", omitted to keep the texture colors */
-    tint?: string;
     scale: number;
     health: number;
     /** Vertical speed in px/ms */
@@ -30,8 +29,8 @@ export type EnemyData = {
     score: number;
     /** Chance in [0, 1] to drop a pickup on death */
     dropChance: number;
-    /** Plays the "ufoShoot" animation before shooting (ufo textures only) */
-    shootAnimation: boolean;
+    /** The enemy swells this long before each shot, so the player can read it coming */
+    telegraphMs: number;
     movement: MovementData;
     weapon?: EnemyWeaponData;
 };

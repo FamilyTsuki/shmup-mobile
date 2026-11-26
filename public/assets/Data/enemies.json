@@ -1,84 +1,128 @@
 {
     "scout": {
-        "texture": "ufoRed",
-        "scale": 1,
+        "texture": "delta",
+        "scale": 0.9,
         "health": 1,
         "speed": 0.2,
         "score": 10,
         "dropChance": 0.15,
-        "shootAnimation": true,
-        "movement": {"type": "straight"},
+        "telegraphMs": 350,
+        "movement": {
+            "type": "straight"
+        },
         "weapon": {
-            "bullet": {"width": 12, "height": 12, "color": "#f25f5c", "speed": 512, "damage": 1},
+            "bullet": {
+                "width": 21,
+                "height": 21,
+                "speed": 480,
+                "damage": 1
+            },
             "bulletCount": 1,
             "spreadAngleDeg": 0,
-            "aimed": false,
-            "fireDelayMs": [2000, 3000]
+            "aimed": true,
+            "fireDelayMs": [
+                1600,
+                2600
+            ]
         }
     },
     "weaver": {
-        "texture": "ufoRed",
-        "tint": "#4cc9f0",
+        "texture": "weaver",
         "scale": 1,
         "health": 2,
         "speed": 0.15,
         "score": 20,
         "dropChance": 0.25,
-        "shootAnimation": true,
-        "movement": {"type": "sine", "frequency": 0.003, "amplitude": 120},
+        "telegraphMs": 350,
+        "movement": {
+            "type": "sine",
+            "frequency": 0.003,
+            "amplitude": 120
+        },
         "weapon": {
-            "bullet": {"width": 10, "height": 10, "color": "#4cc9f0", "speed": 400, "damage": 1},
+            "bullet": {
+                "width": 18,
+                "height": 18,
+                "speed": 400,
+                "damage": 1
+            },
             "bulletCount": 3,
-            "spreadAngleDeg": 30,
-            "aimed": false,
-            "fireDelayMs": [2200, 3200]
+            "spreadAngleDeg": 40,
+            "aimed": true,
+            "fireDelayMs": [
+                2000,
+                3000
+            ]
         }
     },
     "kamikaze": {
-        "texture": "playerShip3_blue",
-        "tint": "#ff6b35",
+        "texture": "spike",
         "scale": 0.8,
         "health": 1,
         "speed": 0.45,
         "score": 15,
         "dropChance": 0.1,
-        "shootAnimation": false,
-        "movement": {"type": "chase", "horizontalSpeed": 0.25}
+        "telegraphMs": 0,
+        "movement": {
+            "type": "chase",
+            "horizontalSpeed": 0.25
+        }
     },
     "tank": {
-        "texture": "ufoRed",
-        "tint": "#7bd389",
-        "scale": 1.5,
+        "texture": "hex",
+        "scale": 1.4,
         "health": 8,
         "speed": 0.07,
         "score": 60,
         "dropChance": 0.8,
-        "shootAnimation": true,
-        "movement": {"type": "straight"},
+        "telegraphMs": 500,
+        "movement": {
+            "type": "straight"
+        },
         "weapon": {
-            "bullet": {"width": 14, "height": 14, "color": "#7bd389", "speed": 360, "damage": 1},
-            "bulletCount": 5,
-            "spreadAngleDeg": 70,
+            "bullet": {
+                "width": 24,
+                "height": 24,
+                "speed": 340,
+                "damage": 1
+            },
+            "bulletCount": 7,
+            "spreadAngleDeg": 80,
             "aimed": false,
-            "fireDelayMs": [2500, 3500]
+            "fireDelayMs": [
+                2300,
+                3300
+            ]
         }
     },
     "turret": {
-        "texture": "playerShip2_blue",
-        "tint": "#c77dff",
-        "scale": 0.9,
+        "texture": "turret",
+        "scale": 0.95,
         "health": 4,
         "speed": 0.25,
         "score": 40,
         "dropChance": 0.4,
-        "shootAnimation": false,
-        "movement": {"type": "hover", "stopY": 420, "stayMs": 6000, "swayAmplitude": 80},
+        "telegraphMs": 400,
+        "movement": {
+            "type": "hover",
+            "stopY": 420,
+            "stayMs": 6000,
+            "swayAmplitude": 80
+        },
         "weapon": {
-            "bullet": {"width": 18, "height": 8, "color": "#c77dff", "speed": 620, "damage": 1},
+            "bullet": {
+                "width": 36,
+                "height": 14,
+                "speed": 620,
+                "damage": 1
+            },
             "bulletCount": 1,
             "spreadAngleDeg": 0,
             "aimed": true,
-            "fireDelayMs": [1200, 1800]
+            "fireDelayMs": [
+                1200,
+                1800
+            ]
         }
     }
 }

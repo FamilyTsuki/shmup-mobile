@@ -1,0 +1,15 @@
+{
+    "ghost": {
+        "alpha": 0.45,
+        "tint": "#b9c7ff",
+        "slowRadius": 170,
+        "slowFactor": 0.35,
+        "booRadius": 320,
+        "booCooldownMs": 3500,
+        "scareMs": 1600,
+        "scarePushPx": 160
+    },
+    "revive": {"distance": 120, "holdMs": 1200, "lives": 1, "invulnerableMs": 2000},
+    "highFive": {"distance": 95, "cooldownMs": 4000, "resonanceBonus": 15, "score": 50},
+    "syncBurst": {"windowMs": 450, "radius": 1100, "strength": 2, "score": 300}
+}

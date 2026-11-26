@@ -4,26 +4,34 @@ import Health from "../components/Health.ts";
 import SpreadWeapon from "../components/SpreadWeapon.ts";
 import EnemyMovement from "../components/movement/EnemyMovement.ts";
 import createEnemyMovement from "../components/movement/createEnemyMovement.ts";
-import {toBulletData} from "../gameData/BulletData.ts";
+import {BulletData, toBulletData} from "../gameData/BulletData.ts";
 import type {EnemyData} from "../gameData/EnemyData.ts";
+import type {Polarity} from "../gameData/PolarityData.ts";
+import TextureFactory from "../utils/TextureFactory.ts";
 
 /**
- * Every enemy type is this class configured by an entry of enemies.json.
+ * Every enemy type is this class configured by an entry of enemies.json. The polarity is chosen at each spawn.
  */
 export default class Enemy extends Entity {
     /** Emitted on the scene events with the enemy, when it dies (not when it leaves the screen) */
     public static readonly KILLED_EVENT: string = 'enemyKilled';
 
-    private static readonly SHOOT_ANIMATION_KEY: string = 'ufoShoot';
     private static readonly HIT_FLASH_MS: number = 50;
     private static readonly HIT_SLOW_FACTOR: number = 0.5;
+    private static readonly TELEGRAPH_SCALE: number = 1.2;
+    private static readonly RESPAWN_MARGIN: number = 100;
 
     private _type: string;
     private _data: EnemyData;
-    private _tint: number | null;
-    private _target: Entity | null;
+    private _polarity: Polarity = 'ion';
+    private _bulletData: BulletData | null = null;
+    private _findTarget: (enemy: Enemy) => Entity | null = () => null;
     private _movement: EnemyMovement;
     private _shootTimer: Time.TimerEvent | null = null;
+    private _telegraph: Phaser.Tweens.Tween | null = null;
+    private _slowedUntil: number = 0;
+    private _slowFactor: number = 1;
+    private _scaredUntil: number = 0;
 
     public get enemyType(): string {
         return this._type;
@@ -33,20 +41,23 @@ export default class Enemy extends Entity {
         return this._data;
     }
 
-    /** What aimed weapons and chasing movements go after, usually the player */
-    public get target(): Entity | null {
-        return this._target;
+    public get polarity(): Polarity {
+        return this._polarity;
     }
 
-    public init(type: string, data: EnemyData, bulletsGroup: Physics.Arcade.Group, target: Entity | null) {
+    /** What aimed weapons and chasing movements go after: the closest player still alive */
+    public get target(): Entity | null {
+        return this._findTarget(this);
+    }
+
+    public init(type: string, data: EnemyData, bulletsGroup: Physics.Arcade.Group,
+                findTarget: (enemy: Enemy) => Entity | null) {
         this._type = type;
         this._data = data;
-        this._target = target;
-        this._tint = data.tint ? Phaser.Display.Color.HexStringToColor(data.tint).color : null;
+        this._findTarget = findTarget;
 
-        this.setTexture('sprites', data.texture);
+        this.setPolarity('ion');
         this.setScale(data.scale);
-        this.restoreDefaultTint();
         this.angle = 90;
 
         this.addComponent(new Health(data.health, this));
@@ -54,7 +65,9 @@ export default class Enemy extends Entity {
         this.addComponent(this._movement);
 
         if (data.weapon) {
-            this.addComponent(new SpreadWeapon(bulletsGroup, toBulletData(data.weapon.bullet),
+            // Shared with the weapon: changing its polarity recolors the next shots
+            this._bulletData = toBulletData(data.weapon.bullet, this._polarity);
+            this.addComponent(new SpreadWeapon(bulletsGroup, this._bulletData,
                 data.weapon.bulletCount, data.weapon.spreadAngleDeg));
             this._shootTimer = this.scene.time.addEvent({delay: data.weapon.fireDelayMs[1], paused: true});
         }
@@ -68,37 +81,23 @@ export default class Enemy extends Entity {
                 this.disableBody();
 
             this.scene.time.delayedCall(Enemy.HIT_FLASH_MS, () => {
-                this.restoreDefaultTint();
+                this.clearTint();
 
                 if (health.current == 0)
                     this.disable();
             });
         });
         health.on(Health.DEATH_EVENT, () => this.scene.events.emit(Enemy.KILLED_EVENT, this));
-
-        if (data.shootAnimation && !this.scene.anims.exists(Enemy.SHOOT_ANIMATION_KEY)) {
-            this.scene.anims.create({
-                key: Enemy.SHOOT_ANIMATION_KEY,
-                frames: [
-                    {key: 'sprites', frame: 'ufoRed'},
-                    {key: 'sprites', frame: 'ufoRed-shoot0'},
-                    {key: 'sprites', frame: 'ufoRed-shoot1'}
-                ],
-                frameRate: 4,
-            });
-        }
-
-        const radius = Math.min(this.width, this.height) / 2;
-        this.arcadeBody.setCircle(radius, (this.width - radius * 2) / 2, (this.height - radius * 2) / 2);
     }
 
     /**
      * @param difficulty multiplies health and fire rate
      */
-    public enable(x: number, y: number, difficulty: number = 1) {
+    public enable(x: number, y: number, difficulty: number = 1, polarity: Polarity = 'ion') {
+        this.setPolarity(polarity);
+        this.setScale(this._data.scale);
         this.enableBody(true, x, y - this.displayHeight, true, true);
-        this.setTexture('sprites', this._data.texture);
-        this.restoreDefaultTint();
+        this.clearTint();
 
         // Restore health, in case the enemy is reused from the pool, without emitting events
         this.getComponent(Health)?.reset(Math.ceil(this._data.health * difficulty));
@@ -115,58 +114,104 @@ export default class Enemy extends Entity {
         }
     }
 
+    /** Coop ghost nearby: moves slower for a moment */
+    public slow(factor: number, durationMs: number) {
+        this._slowFactor = factor;
+        this._slowedUntil = this.scene.time.now + durationMs;
+    }
+
+    /** Coop ghost "boo": backs off, shakes and holds its fire for a while */
+    public scare(durationMs: number, pushPx: number) {
+        this._scaredUntil = this.scene.time.now + durationMs;
+        this._telegraph?.stop();
+        this._telegraph = null;
+        this.setScale(this._data.scale);
+        this.scene.tweens.add({targets: this, y: this.y - pushPx, duration: 300, ease: 'Back.easeOut'});
+        this.scene.tweens.add({targets: this, angle: {from: 80, to: 100}, duration: 70, yoyo: true,
+            repeat: Math.floor(durationMs / 140), onComplete: () => this.angle = 90});
+    }
+
+    private get scared(): boolean {
+        return this.scene.time.now < this._scaredUntil;
+    }
+
     public disable() {
-        this.stop();
-        this.removeAllListeners(Phaser.Animations.Events.ANIMATION_COMPLETE);
+        this._telegraph?.stop();
+        this._telegraph = null;
 
         this.disableBody(true, true);
         if (this._shootTimer)
             this._shootTimer.paused = true;
     }
 
-    private restoreDefaultTint() {
-        if (this._tint === null)
-            this.clearTint();
-        else
-            this.setTint(this._tint);
+    private setPolarity(polarity: Polarity) {
+        this._polarity = polarity;
+        this.setTexture(TextureFactory.shipKey(this._data.texture, polarity));
+        if (this._bulletData)
+            this._bulletData.polarity = polarity;
+
+        const radius = TextureFactory.bodyData(this.scene, this.texture.key).hitRadius;
+        this.arcadeBody.setCircle(radius, this.width / 2 - radius, this.height / 2 - radius);
     }
 
+    /** Swells before firing: the shot is readable, and the player has time to pick the right polarity */
     private shoot() {
-        if (!this._data.shootAnimation) {
+        if (this.scared)
+            return;
+        if (this._data.telegraphMs <= 0) {
             this.fire();
             return;
         }
 
-        this.play(Enemy.SHOOT_ANIMATION_KEY);
-        this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-            this.setTexture('sprites', this._data.texture);
-            this.fire();
+        this._telegraph?.stop();
+        this._telegraph = this.scene.tweens.add({
+            targets: this,
+            scale: this._data.scale * Enemy.TELEGRAPH_SCALE,
+            duration: this._data.telegraphMs / 2,
+            yoyo: true,
+            ease: 'Sine.easeInOut',
+            onComplete: () => {
+                this._telegraph = null;
+                this.setScale(this._data.scale);
+                if (this.active)
+                    this.fire();
+            }
         });
     }
 
     private fire() {
         let angleOffset = 0;
-        if (this._data.weapon?.aimed && this._target?.active) {
-            const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, this._target.x, this._target.y);
+        const target = this.target;
+        if (this._data.weapon?.aimed && target?.active) {
+            const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
             angleOffset = angleToTarget - this.rotation;
         }
 
         this.getComponent(SpreadWeapon)?.shoot(this, angleOffset);
-        this.scene.sound.play('sfx_laser2');
+        this.scene.sound.play('sfx_laser2', {volume: 0.35});
     }
 
     preUpdate(timeSinceLaunch: number, deltaTime: number) {
         super.preUpdate(timeSinceLaunch, deltaTime);
 
-        // Recycle enemies that left the screen
+        // An enemy that gets past the player comes back from the top: a wave only ends once every enemy is
+        // destroyed, so the player has to move and hunt them instead of waiting
         const camera = this.scene.cameras.main;
-        if (this.y > camera.height + this.displayHeight
-            || this.x < -this.displayWidth || this.x > camera.width + this.displayWidth) {
+        if (this.y > camera.height + this.displayHeight) {
+            this.y = -this.displayHeight;
+            this.x = Phaser.Math.Between(Enemy.RESPAWN_MARGIN, camera.width - Enemy.RESPAWN_MARGIN);
+            this._movement.reset(this);
+            return;
+        }
+        if (this.x < -this.displayWidth || this.x > camera.width + this.displayWidth) {
             this.disable();
             return;
         }
 
-        const speed = this._data.speed * (this.tintFill ? Enemy.HIT_SLOW_FACTOR : 1);
+        if (this.scared)
+            return;
+        const ghostSlow = this.scene.time.now < this._slowedUntil ? this._slowFactor : 1;
+        const speed = this._data.speed * (this.tintFill ? Enemy.HIT_SLOW_FACTOR : 1) * ghostSlow;
         this._movement.update(this, deltaTime, speed);
     }
 }

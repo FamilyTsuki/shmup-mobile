@@ -5,30 +5,136 @@
             "difficulty": 1,
             "boss": "mothership",
             "waves": [
-                {"groups": [{"enemy": "scout", "count": 5, "formation": "random", "intervalMs": 900}]},
-                {"groups": [{"enemy": "scout", "count": 5, "formation": "v", "intervalMs": 0}]},
-                {"groups": [
-                    {"enemy": "weaver", "count": 3, "formation": "column", "intervalMs": 1200},
-                    {"enemy": "scout", "count": 4, "formation": "random", "intervalMs": 1000, "delayMs": 1500}
-                ]},
-                {"groups": [{"enemy": "kamikaze", "count": 6, "formation": "sides", "intervalMs": 700}]}
+                {
+                    "hint": "Les tirs de TA couleur\nsont absorbés",
+                    "groups": [
+                        {
+                            "enemy": "scout",
+                            "count": 5,
+                            "formation": "random",
+                            "intervalMs": 900,
+                            "polarity": "ion"
+                        }
+                    ]
+                },
+                {
+                    "hint": "Change de couleur :\n2e doigt, tap rapide ou X",
+                    "groups": [
+                        {
+                            "enemy": "scout",
+                            "count": 5,
+                            "formation": "v",
+                            "intervalMs": 0,
+                            "polarity": "plasma"
+                        }
+                    ]
+                },
+                {
+                    "hint": "Couleur opposée = dégâts x2\nLes fuyards reviennent !",
+                    "groups": [
+                        {
+                            "enemy": "weaver",
+                            "count": 3,
+                            "formation": "column",
+                            "intervalMs": 1200,
+                            "polarity": "ion"
+                        },
+                        {
+                            "enemy": "scout",
+                            "count": 4,
+                            "formation": "random",
+                            "intervalMs": 1000,
+                            "delayMs": 1500,
+                            "polarity": "plasma"
+                        }
+                    ]
+                },
+                {
+                    "hint": "Jauge chargée + changement\n= BASCULE\nJauge pleine = SURCHARGE",
+                    "groups": [
+                        {
+                            "enemy": "tank",
+                            "count": 1,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "plasma"
+                        },
+                        {
+                            "enemy": "kamikaze",
+                            "count": 6,
+                            "formation": "sides",
+                            "intervalMs": 700,
+                            "delayMs": 1500
+                        }
+                    ]
+                }
             ]
         },
         {
             "name": "Champ de débris",
             "difficulty": 1.2,
-            "boss": "mothership",
+            "boss": "orchid",
             "waves": [
-                {"groups": [{"enemy": "weaver", "count": 5, "formation": "line", "intervalMs": 0}]},
-                {"groups": [
-                    {"enemy": "turret", "count": 2, "formation": "random", "intervalMs": 2500},
-                    {"enemy": "scout", "count": 6, "formation": "random", "intervalMs": 700, "delayMs": 1000}
-                ]},
-                {"groups": [{"enemy": "kamikaze", "count": 8, "formation": "sides", "intervalMs": 500}]},
-                {"groups": [
-                    {"enemy": "tank", "count": 1, "formation": "random", "intervalMs": 0},
-                    {"enemy": "weaver", "count": 4, "formation": "column", "intervalMs": 900, "delayMs": 2000}
-                ]}
+                {
+                    "groups": [
+                        {
+                            "enemy": "weaver",
+                            "count": 5,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "turret",
+                            "count": 2,
+                            "formation": "random",
+                            "intervalMs": 2500,
+                            "polarity": "ion"
+                        },
+                        {
+                            "enemy": "scout",
+                            "count": 6,
+                            "formation": "random",
+                            "intervalMs": 700,
+                            "delayMs": 1000,
+                            "polarity": "plasma"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "kamikaze",
+                            "count": 8,
+                            "formation": "sides",
+                            "intervalMs": 500,
+                            "polarity": "plasma"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "tank",
+                            "count": 1,
+                            "formation": "random",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "weaver",
+                            "count": 4,
+                            "formation": "column",
+                            "intervalMs": 900,
+                            "delayMs": 2000,
+                            "polarity": "random"
+                        }
+                    ]
+                }
             ]
         },
         {
@@ -36,40 +142,159 @@
             "difficulty": 1.4,
             "boss": "dreadnought",
             "waves": [
-                {"groups": [{"enemy": "scout", "count": 7, "formation": "v", "intervalMs": 0}]},
-                {"groups": [
-                    {"enemy": "turret", "count": 3, "formation": "random", "intervalMs": 1500},
-                    {"enemy": "kamikaze", "count": 6, "formation": "sides", "intervalMs": 600, "delayMs": 2000}
-                ]},
-                {"groups": [{"enemy": "tank", "count": 2, "formation": "line", "intervalMs": 0}]},
-                {"groups": [
-                    {"enemy": "weaver", "count": 6, "formation": "line", "intervalMs": 0},
-                    {"enemy": "weaver", "count": 6, "formation": "line", "intervalMs": 0, "delayMs": 2500}
-                ]},
-                {"groups": [
-                    {"enemy": "turret", "count": 2, "formation": "line", "intervalMs": 0},
-                    {"enemy": "kamikaze", "count": 10, "formation": "random", "intervalMs": 400, "delayMs": 1000}
-                ]}
+                {
+                    "groups": [
+                        {
+                            "enemy": "scout",
+                            "count": 7,
+                            "formation": "v",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "turret",
+                            "count": 3,
+                            "formation": "random",
+                            "intervalMs": 1500,
+                            "polarity": "plasma"
+                        },
+                        {
+                            "enemy": "kamikaze",
+                            "count": 6,
+                            "formation": "sides",
+                            "intervalMs": 600,
+                            "delayMs": 2000,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "tank",
+                            "count": 2,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "weaver",
+                            "count": 6,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "plasma"
+                        },
+                        {
+                            "enemy": "weaver",
+                            "count": 6,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "delayMs": 2500,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "turret",
+                            "count": 2,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "kamikaze",
+                            "count": 10,
+                            "formation": "random",
+                            "intervalMs": 400,
+                            "delayMs": 1000,
+                            "polarity": "plasma"
+                        }
+                    ]
+                }
             ]
         },
         {
             "name": "Avant-poste",
             "difficulty": 1.7,
-            "boss": "dreadnought",
+            "boss": "blade",
             "waves": [
-                {"groups": [
-                    {"enemy": "tank", "count": 2, "formation": "line", "intervalMs": 0},
-                    {"enemy": "scout", "count": 8, "formation": "random", "intervalMs": 500, "delayMs": 1000}
-                ]},
-                {"groups": [{"enemy": "kamikaze", "count": 12, "formation": "sides", "intervalMs": 350}]},
-                {"groups": [
-                    {"enemy": "turret", "count": 4, "formation": "line", "intervalMs": 0},
-                    {"enemy": "weaver", "count": 5, "formation": "v", "intervalMs": 0, "delayMs": 3000}
-                ]},
-                {"groups": [
-                    {"enemy": "tank", "count": 3, "formation": "column", "intervalMs": 2500},
-                    {"enemy": "kamikaze", "count": 8, "formation": "random", "intervalMs": 600}
-                ]}
+                {
+                    "groups": [
+                        {
+                            "enemy": "tank",
+                            "count": 2,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "scout",
+                            "count": 8,
+                            "formation": "random",
+                            "intervalMs": 500,
+                            "delayMs": 1000,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "kamikaze",
+                            "count": 12,
+                            "formation": "sides",
+                            "intervalMs": 350,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "turret",
+                            "count": 4,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "weaver",
+                            "count": 5,
+                            "formation": "v",
+                            "intervalMs": 0,
+                            "delayMs": 3000,
+                            "polarity": "ion"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "tank",
+                            "count": 3,
+                            "formation": "column",
+                            "intervalMs": 2500,
+                            "polarity": "ion"
+                        },
+                        {
+                            "enemy": "kamikaze",
+                            "count": 8,
+                            "formation": "random",
+                            "intervalMs": 600,
+                            "polarity": "plasma"
+                        }
+                    ]
+                }
             ]
         },
         {
@@ -77,23 +302,90 @@
             "difficulty": 2,
             "boss": "overlord",
             "waves": [
-                {"groups": [
-                    {"enemy": "weaver", "count": 7, "formation": "v", "intervalMs": 0},
-                    {"enemy": "turret", "count": 3, "formation": "line", "intervalMs": 0, "delayMs": 2500}
-                ]},
-                {"groups": [
-                    {"enemy": "kamikaze", "count": 14, "formation": "sides", "intervalMs": 300},
-                    {"enemy": "tank", "count": 2, "formation": "line", "intervalMs": 0, "delayMs": 2000}
-                ]},
-                {"groups": [
-                    {"enemy": "scout", "count": 8, "formation": "line", "intervalMs": 0},
-                    {"enemy": "scout", "count": 8, "formation": "line", "intervalMs": 0, "delayMs": 2000},
-                    {"enemy": "turret", "count": 4, "formation": "random", "intervalMs": 1000, "delayMs": 3000}
-                ]},
-                {"groups": [
-                    {"enemy": "tank", "count": 4, "formation": "line", "intervalMs": 0},
-                    {"enemy": "kamikaze", "count": 12, "formation": "random", "intervalMs": 400, "delayMs": 1500}
-                ]}
+                {
+                    "groups": [
+                        {
+                            "enemy": "weaver",
+                            "count": 7,
+                            "formation": "v",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "turret",
+                            "count": 3,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "delayMs": 2500,
+                            "polarity": "ion"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "kamikaze",
+                            "count": 14,
+                            "formation": "sides",
+                            "intervalMs": 300,
+                            "polarity": "random"
+                        },
+                        {
+                            "enemy": "tank",
+                            "count": 2,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "delayMs": 2000,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "scout",
+                            "count": 8,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "scout",
+                            "count": 8,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "delayMs": 2000,
+                            "polarity": "ion"
+                        },
+                        {
+                            "enemy": "turret",
+                            "count": 4,
+                            "formation": "random",
+                            "intervalMs": 1000,
+                            "delayMs": 3000,
+                            "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "tank",
+                            "count": 4,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "plasma"
+                        },
+                        {
+                            "enemy": "kamikaze",
+                            "count": 12,
+                            "formation": "random",
+                            "intervalMs": 400,
+                            "delayMs": 1500,
+                            "polarity": "alternate"
+                        }
+                    ]
+                }
             ]
         }
     ]

@@ -1,115 +1,267 @@
 {
     "mothership": {
         "name": "Vaisseau-mère",
-        "texture": "ufoRed",
-        "tint": "#ff4d6d",
-        "scale": 3,
+        "texture": "mothership",
+        "scale": 1,
         "health": 90,
         "score": 1000,
-        "entryY": 500,
+        "entryY": 460,
         "moveAmplitude": 280,
         "moveSpeed": 0.0007,
+        "intro": [
+            "ICI LE VAISSEAU-MÈRE. Veuillez présenter le formulaire B-12.",
+            "Vous n'avez pas le formulaire B-12 ?",
+            "Dommage. Le guichet est fermé. DÉFINITIVEMENT."
+        ],
+        "defeatLine": "Je... vais déposer... une réclamation...",
         "phases": [
             {
                 "healthBelow": 1,
                 "moveSpeedFactor": 1,
+                "polarity": "plasma",
                 "patterns": [
-                    {"type": "fan", "delayMs": 1600, "bulletCount": 7, "spreadAngleDeg": 70, "aimed": false,
-                        "bullet": {"width": 16, "height": 16, "color": "#ff4d6d", "speed": 380, "damage": 1}},
-                    {"type": "fan", "delayMs": 2300, "bulletCount": 1, "spreadAngleDeg": 0, "aimed": true,
-                        "bullet": {"width": 24, "height": 10, "color": "#ffd166", "speed": 650, "damage": 1}}
+                    {"type": "fan", "delayMs": 1600, "bulletCount": 7, "spreadAngleDeg": 70, "aimed": true,
+                        "bullet": {"width": 24, "height": 24, "speed": 380, "damage": 1}},
+                    {"type": "curtain", "delayMs": 3400, "gapWidth": 300, "spacing": 90, "polarity": "alternate",
+                        "bullet": {"width": 21, "height": 21, "speed": 300, "damage": 1}}
                 ]
             },
             {
                 "healthBelow": 0.5,
                 "moveSpeedFactor": 1.6,
+                "polarity": "ion",
+                "say": "Formulaire REFUSÉ ! Tamponné ! Tamponné !",
                 "patterns": [
                     {"type": "fan", "delayMs": 260, "bulletCount": 4, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 13,
-                        "bullet": {"width": 14, "height": 14, "color": "#ff4d6d", "speed": 300, "damage": 1}},
+                        "polarity": "alternate",
+                        "bullet": {"width": 21, "height": 21, "speed": 300, "damage": 1}},
+                    {"type": "fan", "delayMs": 1500, "bulletCount": 1, "spreadAngleDeg": 0, "aimed": true, "polarity": "counter",
+                        "bullet": {"width": 39, "height": 17, "speed": 700, "damage": 1}},
                     {"type": "summon", "delayMs": 5000, "enemy": "kamikaze", "count": 2}
+                ]
+            }
+        ]
+    },
+    "orchid": {
+        "name": "Orchidée Vorace",
+        "texture": "orchid",
+        "scale": 1,
+        "health": 120,
+        "score": 1500,
+        "entryY": 440,
+        "moveAmplitude": 200,
+        "moveSpeed": 0.0006,
+        "intro": [
+            "Oh ! Bonjour petit vaisseau ! Tu as l'air tout perdu !",
+            "Moi c'est Orchidée. Je suis gentille. Trèèès gentille.",
+            "Tiens, des graines de l'amitié ! Attrape-les TOUTES !"
+        ],
+        "defeatLine": "Je voulais juste... un arrosoir...",
+        "phases": [
+            {
+                "healthBelow": 1,
+                "moveSpeedFactor": 1,
+                "polarity": "plasma",
+                "patterns": [
+                    {"type": "fan", "delayMs": 1300, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
+                        "bullet": {"width": 21, "height": 21, "speed": 260, "damage": 1}},
+                    {"type": "fan", "delayMs": 2100, "bulletCount": 9, "spreadAngleDeg": 140, "aimed": false,
+                        "bullet": {"width": 18, "height": 18, "speed": 320, "damage": 1}}
+                ]
+            },
+            {
+                "healthBelow": 0.65,
+                "moveSpeedFactor": 1.2,
+                "polarity": "ion",
+                "say": "Pourquoi tu esquives mon AMITIÉ ?!",
+                "patterns": [
+                    {"type": "ring", "delayMs": 3200, "bulletCount": 16, "radius": 340, "holdMs": 900, "polarity": "counter",
+                        "bullet": {"width": 21, "height": 21, "speed": 420, "damage": 1}},
+                    {"type": "fan", "delayMs": 1400, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
+                        "bullet": {"width": 21, "height": 21, "speed": 300, "damage": 1}}
+                ]
+            },
+            {
+                "healthBelow": 0.3,
+                "moveSpeedFactor": 1.6,
+                "polarity": "plasma",
+                "polarityCycleMs": 3500,
+                "say": "Bon. Fini les cadeaux. Place aux RACINES !",
+                "patterns": [
+                    {"type": "curtain", "delayMs": 1900, "gapWidth": 260, "spacing": 80, "polarity": "counter",
+                        "bullet": {"width": 21, "height": 21, "speed": 340, "damage": 1}},
+                    {"type": "ring", "delayMs": 4100, "bulletCount": 20, "radius": 360, "holdMs": 800, "polarity": "alternate",
+                        "bullet": {"width": 21, "height": 21, "speed": 460, "damage": 1}},
+                    {"type": "summon", "delayMs": 7000, "enemy": "weaver", "count": 2}
                 ]
             }
         ]
     },
     "dreadnought": {
         "name": "Cuirassé",
-        "texture": "playerShip2_blue",
-        "tint": "#e63946",
-        "scale": 3.2,
+        "texture": "dreadnought",
+        "scale": 1.05,
         "health": 160,
         "score": 2000,
-        "entryY": 520,
+        "entryY": 480,
         "moveAmplitude": 300,
         "moveSpeed": 0.0009,
+        "intro": [
+            "Cuirassé en approche. Blindage : maximal.",
+            "Je n'ai qu'un seul point faible...",
+            "...ah non. Je ne vais pas te le dire. Bien essayé."
+        ],
+        "defeatLine": "C'était... le blindage arrière...",
         "phases": [
             {
                 "healthBelow": 1,
                 "moveSpeedFactor": 1,
+                "polarity": "ion",
                 "patterns": [
                     {"type": "fan", "delayMs": 1300, "bulletCount": 9, "spreadAngleDeg": 90, "aimed": true,
-                        "bullet": {"width": 14, "height": 14, "color": "#e63946", "speed": 400, "damage": 1}},
+                        "bullet": {"width": 21, "height": 21, "speed": 400, "damage": 1}},
                     {"type": "summon", "delayMs": 6000, "enemy": "scout", "count": 3}
                 ]
             },
             {
                 "healthBelow": 0.6,
                 "moveSpeedFactor": 1.4,
+                "polarity": "plasma",
+                "say": "Tirs de barrage ! Tous les canons !",
                 "patterns": [
                     {"type": "fan", "delayMs": 200, "bulletCount": 3, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 17,
-                        "bullet": {"width": 12, "height": 12, "color": "#f4a261", "speed": 320, "damage": 1}},
-                    {"type": "fan", "delayMs": 1800, "bulletCount": 3, "spreadAngleDeg": 20, "aimed": true,
-                        "bullet": {"width": 26, "height": 10, "color": "#ffd166", "speed": 700, "damage": 1}}
+                        "bullet": {"width": 18, "height": 18, "speed": 320, "damage": 1}},
+                    {"type": "curtain", "delayMs": 3000, "gapWidth": 280, "spacing": 90, "polarity": "counter",
+                        "bullet": {"width": 21, "height": 21, "speed": 330, "damage": 1}}
                 ]
             },
             {
                 "healthBelow": 0.25,
                 "moveSpeedFactor": 2,
+                "polarity": "ion",
+                "polarityCycleMs": 3000,
+                "say": "Avarie ! AVARIE ! On garde son calme !",
                 "patterns": [
                     {"type": "fan", "delayMs": 900, "bulletCount": 18, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 10,
-                        "bullet": {"width": 14, "height": 14, "color": "#e63946", "speed": 340, "damage": 1}},
+                        "polarity": "alternate",
+                        "bullet": {"width": 21, "height": 21, "speed": 340, "damage": 1}},
+                    {"type": "fan", "delayMs": 1600, "bulletCount": 3, "spreadAngleDeg": 20, "aimed": true, "polarity": "counter",
+                        "bullet": {"width": 42, "height": 17, "speed": 700, "damage": 1}},
                     {"type": "summon", "delayMs": 4000, "enemy": "kamikaze", "count": 3}
+                ]
+            }
+        ]
+    },
+    "blade": {
+        "name": "Lame Écarlate",
+        "texture": "blade",
+        "scale": 1,
+        "health": 180,
+        "score": 2500,
+        "entryY": 420,
+        "movement": "duelist",
+        "moveAmplitude": 420,
+        "moveSpeed": 0,
+        "repositionMs": 1400,
+        "intro": [
+            "...",
+            "Tu as franchi ma ligne. Personne ne franchit ma ligne.",
+            "En garde, petite casserole volante."
+        ],
+        "defeatLine": "Hmpf. Match nul. On dira match nul.",
+        "phases": [
+            {
+                "healthBelow": 1,
+                "moveSpeedFactor": 1,
+                "polarity": "plasma",
+                "patterns": [
+                    {"type": "lunge", "delayMs": 3600, "warnMs": 600, "speed": 2.4},
+                    {"type": "fan", "delayMs": 1100, "bulletCount": 3, "spreadAngleDeg": 24, "aimed": true,
+                        "bullet": {"width": 42, "height": 17, "speed": 640, "damage": 1}}
+                ]
+            },
+            {
+                "healthBelow": 0.6,
+                "moveSpeedFactor": 1.3,
+                "polarity": "ion",
+                "say": "Pas mal. Mais ma lame revient TOUJOURS.",
+                "patterns": [
+                    {"type": "boomerang", "delayMs": 2200, "returnAfterMs": 750, "polarity": "counter",
+                        "bullet": {"width": 63, "height": 26, "speed": 760, "damage": 1}},
+                    {"type": "traps", "delayMs": 5000, "count": 6, "lifetimeMs": 4000, "polarity": "alternate",
+                        "bullet": {"width": 24, "height": 24, "speed": 0, "damage": 1}},
+                    {"type": "lunge", "delayMs": 4200, "warnMs": 500, "speed": 2.8}
+                ]
+            },
+            {
+                "healthBelow": 0.3,
+                "moveSpeedFactor": 1.7,
+                "polarity": "plasma",
+                "polarityCycleMs": 2800,
+                "say": "ASSEZ ! Danse avec moi !",
+                "patterns": [
+                    {"type": "lunge", "delayMs": 2600, "warnMs": 420, "speed": 3.2},
+                    {"type": "boomerang", "delayMs": 1700, "returnAfterMs": 650, "polarity": "counter",
+                        "bullet": {"width": 63, "height": 26, "speed": 820, "damage": 1}},
+                    {"type": "curtain", "delayMs": 3800, "gapWidth": 260, "spacing": 85, "polarity": "alternate",
+                        "bullet": {"width": 21, "height": 21, "speed": 360, "damage": 1}}
                 ]
             }
         ]
     },
     "overlord": {
         "name": "Seigneur de la flotte",
-        "texture": "ufoRed",
-        "tint": "#9d4edd",
-        "scale": 4,
+        "texture": "overlord",
+        "scale": 1.15,
         "health": 260,
         "score": 5000,
-        "entryY": 560,
+        "entryY": 520,
         "moveAmplitude": 260,
         "moveSpeed": 0.0008,
+        "intro": [
+            "Ainsi, tu as vaincu mes sbires.",
+            "Et ma plante. Et mon épéiste. Et mon guichet.",
+            "Tu sais combien ça coûte, du personnel qualifié ?!"
+        ],
+        "defeatLine": "Ma flotte... mon budget... ma retraite...",
         "phases": [
             {
                 "healthBelow": 1,
                 "moveSpeedFactor": 1,
+                "polarity": "plasma",
                 "patterns": [
                     {"type": "fan", "delayMs": 1100, "bulletCount": 11, "spreadAngleDeg": 120, "aimed": false, "rotateDegPerShot": 9,
-                        "bullet": {"width": 14, "height": 14, "color": "#c77dff", "speed": 380, "damage": 1}},
+                        "bullet": {"width": 21, "height": 21, "speed": 380, "damage": 1}},
+                    {"type": "fan", "delayMs": 1700, "bulletCount": 3, "spreadAngleDeg": 16, "aimed": true, "polarity": "counter",
+                        "bullet": {"width": 39, "height": 17, "speed": 650, "damage": 1}},
                     {"type": "summon", "delayMs": 5500, "enemy": "turret", "count": 2}
                 ]
             },
             {
                 "healthBelow": 0.65,
                 "moveSpeedFactor": 1.3,
+                "polarity": "ion",
+                "polarityCycleMs": 4000,
+                "say": "Bon, je m'en occupe moi-même. Comme toujours.",
                 "patterns": [
                     {"type": "fan", "delayMs": 180, "bulletCount": 5, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 11,
-                        "bullet": {"width": 12, "height": 12, "color": "#9d4edd", "speed": 300, "damage": 1}},
-                    {"type": "fan", "delayMs": 1500, "bulletCount": 5, "spreadAngleDeg": 40, "aimed": true,
-                        "bullet": {"width": 24, "height": 10, "color": "#ffd166", "speed": 650, "damage": 1}}
+                        "bullet": {"width": 18, "height": 18, "speed": 300, "damage": 1}},
+                    {"type": "ring", "delayMs": 3600, "bulletCount": 18, "radius": 340, "holdMs": 850, "polarity": "counter",
+                        "bullet": {"width": 21, "height": 21, "speed": 440, "damage": 1}}
                 ]
             },
             {
                 "healthBelow": 0.3,
                 "moveSpeedFactor": 1.8,
+                "polarity": "plasma",
+                "polarityCycleMs": 2500,
+                "say": "TOUT LE MONDE AU TRAVAIL ! MÊME MOI !",
                 "patterns": [
                     {"type": "fan", "delayMs": 140, "bulletCount": 6, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": -8,
-                        "bullet": {"width": 12, "height": 12, "color": "#c77dff", "speed": 320, "damage": 1}},
-                    {"type": "fan", "delayMs": 1200, "bulletCount": 7, "spreadAngleDeg": 50, "aimed": true,
-                        "bullet": {"width": 24, "height": 10, "color": "#ffd166", "speed": 700, "damage": 1}},
+                        "polarity": "alternate",
+                        "bullet": {"width": 18, "height": 18, "speed": 320, "damage": 1}},
+                    {"type": "curtain", "delayMs": 3200, "gapWidth": 260, "spacing": 85, "polarity": "counter",
+                        "bullet": {"width": 21, "height": 21, "speed": 360, "damage": 1}},
                     {"type": "summon", "delayMs": 6000, "enemy": "kamikaze", "count": 4}
                 ]
             }

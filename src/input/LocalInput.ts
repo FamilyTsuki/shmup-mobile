@@ -14,7 +14,8 @@ export default class LocalInput implements IInputSource {
      * @param gyro gyroscope settings, or undefined to steer without tilting the phone
      */
     constructor(scene: Scene, gyro?: GyroSettings) {
-        this._sources = [new KeyboardInput(scene), new TouchInput(scene)];
+        // Tilting steers and fires: every tap is free to switch polarity
+        this._sources = [new KeyboardInput(scene), new TouchInput(scene, gyro !== undefined)];
         if (gyro)
             this._sources.push(new GyroInput(gyro));
     }
@@ -28,6 +29,7 @@ export default class LocalInput implements IInputSource {
             merged.dragX += state.dragX;
             merged.rotate += state.rotate;
             merged.fire ||= state.fire;
+            merged.switchPolarity ||= state.switchPolarity;
         }
 
         merged.moveX = Phaser.Math.Clamp(merged.moveX, -1, 1);

@@ -1,0 +1,20 @@
+{
+    "switchCooldownMs": 180,
+    "absorbCharge": 5,
+    "absorbScore": 2,
+    "oppositeDamageMultiplier": 2,
+    "burst": {
+        "minCharge": 30,
+        "minRadius": 260,
+        "maxRadius": 700,
+        "enemyDamage": 6,
+        "bossDamage": 14,
+        "convertedBullet": {
+            "width": 21,
+            "height": 9,
+            "speed": 1100,
+            "damage": 2
+        }
+    },
+    "overloadAtFullCharge": true
+}

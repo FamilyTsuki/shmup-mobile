@@ -4,6 +4,7 @@ import GyroSensor from "../input/GyroSensor.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import Settings from "../managers/Settings.ts";
 import type {MainGameSceneData} from "./MainGameScene.ts";
+import Net from "../net/Net.ts";
 
 /**
  * Starts a level from a tap: asks for fullscreen and the gyroscope permission, which browsers only grant
@@ -14,6 +15,9 @@ export default function launchGame(scene: Scene, saveManager: SaveManager, level
         scene.scale.startFullscreen();
 
     const start = () => {
+        // Coop host: the guests start their side at the same time
+        if (Net.role === 'host')
+            Net.sendToGuests({k: 'start', level});
         const data: MainGameSceneData = {level};
         scene.scene.launch(GameConstants.SceneKeys.MAIN_UI);
         scene.scene.start(GameConstants.SceneKeys.MAIN_GAME, data);

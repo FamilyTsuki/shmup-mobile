@@ -7,6 +7,9 @@ import PauseScene from "./scenes/PauseScene.ts";
 import OptionsScene from "./scenes/OptionsScene.ts";
 import LevelSelectScene from "./scenes/LevelSelectScene.ts";
 import ShopScene from "./scenes/ShopScene.ts";
+import LobbyScene from "./scenes/LobbyScene.ts";
+import RemoteGameScene from "./scenes/RemoteGameScene.ts";
+import CoopFlow from "./net/CoopFlow.ts";
 import EntityManager from "./managers/EntityManager.ts";
 import SaveManager from "./managers/SaveManager.ts";
 
@@ -17,10 +20,16 @@ const config: Types.Core.GameConfig = {
     width: 1080,
     height: 1920,
     parent: 'game-container',
-    backgroundColor: '#000',
+    backgroundColor: '#0f0c1d',
+    // Pixel art: nearest neighbor scaling, no blur
+    pixelArt: true,
     scale: {
         mode: Scale.FIT,
         autoCenter: Scale.CENTER_BOTH
+    },
+    // One finger steers, a second finger switches polarity
+    input: {
+        activePointers: 3,
     },
     physics: {
         default: 'arcade',
@@ -45,12 +54,15 @@ const config: Types.Core.GameConfig = {
         PauseScene,
         OptionsScene,
         LevelSelectScene,
-        ShopScene
+        ShopScene,
+        LobbyScene,
+        RemoteGameScene
     ]
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Game(config);
+    CoopFlow.install(game);
 
     // Lets the browser console inspect and drive the game while developing
     if (import.meta.env.DEV)

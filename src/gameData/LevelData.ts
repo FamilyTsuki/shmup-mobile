@@ -5,6 +5,8 @@
  * line:   all at once, evenly spread across the screen
  * v:      all at once, in a V pointing down
  */
+import type {PolarityRule} from "./PolarityData.ts";
+
 export type FormationType = 'random' | 'column' | 'sides' | 'line' | 'v';
 
 export type SpawnGroupData = {
@@ -14,10 +16,14 @@ export type SpawnGroupData = {
     intervalMs: number;
     /** Wait before the first spawn of this group, from the wave start */
     delayMs?: number;
+    /** Polarity of the spawned enemies, "alternate" when omitted */
+    polarity?: PolarityRule;
 };
 
 export type WaveData = {
     groups: SpawnGroupData[];
+    /** Shown with the wave banner, to teach a mechanic */
+    hint?: string;
 };
 
 export type LevelData = {

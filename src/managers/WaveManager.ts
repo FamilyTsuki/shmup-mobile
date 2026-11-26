@@ -1,13 +1,14 @@
 import {Events, Scene} from "phaser";
 import EntityManager from "./EntityManager.ts";
 import type {LevelData, SpawnGroupData} from "../gameData/LevelData.ts";
+import {resolvePolarity} from "../gameData/PolarityData.ts";
 
 /**
  * Plays the waves of a level one after the other: the next wave starts once every enemy of the
  * current one is spawned and gone (killed or off screen).
  */
 export default class WaveManager extends Events.EventEmitter {
-    /** (waveIndex: number, waveCount: number) */
+    /** (waveIndex: number, waveCount: number, hint: string | undefined) */
     public static readonly WAVE_STARTED_EVENT: string = 'waveStarted';
     public static readonly ALL_WAVES_CLEARED_EVENT: string = 'allWavesCleared';
 
@@ -56,7 +57,7 @@ export default class WaveManager extends Events.EventEmitter {
         this._pendingSpawns = wave.groups.reduce((total, group) => total + group.count, 0);
         wave.groups.forEach(group => this._scene.time.delayedCall(group.delayMs ?? 0, () => this.spawnGroup(group)));
 
-        this.emit(WaveManager.WAVE_STARTED_EVENT, index, this._level.waves.length);
+        this.emit(WaveManager.WAVE_STARTED_EVENT, index, this._level.waves.length, wave.hint);
     }
 
     private spawnGroup(group: SpawnGroupData) {
@@ -67,14 +68,14 @@ export default class WaveManager extends Events.EventEmitter {
             case 'line':
                 for (let i = 0; i < group.count; i++) {
                     const x = group.count === 1 ? width / 2 : margin + i * (width - margin * 2) / (group.count - 1);
-                    this.spawn(group.enemy, x, 0);
+                    this.spawn(group, i, x, 0);
                 }
                 break;
             case 'v': {
                 const middle = (group.count - 1) / 2;
                 for (let i = 0; i < group.count; i++) {
                     const x = width / 2 + (i - middle) * WaveManager.V_SPACING_X;
-                    this.spawn(group.enemy, x, Math.abs(i - middle) * WaveManager.V_SPACING_Y);
+                    this.spawn(group, i, x, Math.abs(i - middle) * WaveManager.V_SPACING_Y);
                 }
                 break;
             }
@@ -99,12 +100,16 @@ export default class WaveManager extends Events.EventEmitter {
             repeat: group.count - 1,
             // The first enemy appears right away, the next ones every intervalMs
             startAt: Math.max(group.intervalMs, 1),
-            callback: () => this.spawn(group.enemy, getX(index++), 0)
+            callback: () => {
+                this.spawn(group, index, getX(index), 0);
+                index++;
+            }
         });
     }
 
-    private spawn(enemyType: string, x: number, heightAboveScreen: number) {
+    private spawn(group: SpawnGroupData, index: number, x: number, heightAboveScreen: number) {
         this._pendingSpawns--;
-        this._entityManager.spawnEnemy(enemyType, x, -heightAboveScreen, this._level.difficulty);
+        this._entityManager.spawnEnemy(group.enemy, x, -heightAboveScreen, this._level.difficulty,
+            resolvePolarity(group.polarity, index));
     }
 }

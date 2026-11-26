@@ -5,9 +5,11 @@ import GyroSensor from "../input/GyroSensor.ts";
 import SaveManager from "../managers/SaveManager.ts";
 import Settings from "../managers/Settings.ts";
 import Button, {ButtonStyle} from "../ui/Button.ts";
+import Backdrop from "../effects/Backdrop.ts";
+import UiStyle from "../ui/UiStyle.ts";
 
 export default class OptionsScene extends Scene {
-    private static readonly SMALL_BUTTON: ButtonStyle = {width: 150, height: 150, fontSize: 72, fillColor: 0x3a2d5c};
+    private static readonly SMALL_BUTTON: ButtonStyle = {width: 150, height: 150, fontSize: 72, fillColor: UiStyle.PANEL};
     private static readonly TILT_BAR_WIDTH: number = 800;
 
     private saveManager: SaveManager;
@@ -26,6 +28,7 @@ export default class OptionsScene extends Scene {
     // noinspection JSUnusedGlobalSymbols
     create() {
         const centerX = this.scale.width / 2;
+        new Backdrop(this, 0.5);
 
         this._soundButton = new Button(this, centerX, 380, '', () => {
             Settings.setSoundEnabled(this.saveManager, !Settings.isSoundEnabled(this.saveManager));
@@ -33,7 +36,7 @@ export default class OptionsScene extends Scene {
             this.refresh();
         });
 
-        this.add.text(centerX, 200, 'OPTIONS', {fontSize: '110px', color: '#fff', fontFamily: 'future'}).setOrigin(0.5);
+        this.add.text(centerX, 200, 'OPTIONS', UiStyle.text(110)).setOrigin(0.5);
 
         this._modeButton = new Button(this, centerX, 560, '', () => this.toggleMode());
 
@@ -41,7 +44,7 @@ export default class OptionsScene extends Scene {
         new Button(this, centerX - 300, 840, '-', () => this.changeSensitivity(-Settings.GYRO_SENSITIVITY_STEP),
             OptionsScene.SMALL_BUTTON);
         this._sensitivityText = this.add.text(centerX, 840, '',
-            {fontSize: '64px', color: '#ffe066', fontFamily: 'future'}).setOrigin(0.5);
+            UiStyle.text(64, '#f6d55c')).setOrigin(0.5);
         new Button(this, centerX + 300, 840, '+', () => this.changeSensitivity(Settings.GYRO_SENSITIVITY_STEP),
             OptionsScene.SMALL_BUTTON);
 

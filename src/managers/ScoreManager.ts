@@ -38,6 +38,12 @@ export default class ScoreManager {
         this._scene.registry.inc(RegistryConstants.Keys.PLAYER_SCORE, points * this.multiplier);
     }
 
+    /** Absorbing bullets keeps the combo going between kills */
+    public keepComboAlive() {
+        if (this._streak > 0)
+            this._lastKillTime = this._scene.time.now;
+    }
+
     public addCredits(credits: number) {
         this._scene.registry.inc(RegistryConstants.Keys.RUN_CREDITS, credits);
     }

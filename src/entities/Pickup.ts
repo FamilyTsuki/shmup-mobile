@@ -50,6 +50,11 @@ export default class Pickup extends Entity {
         this.setScale(type === 'credit' ? 0.6 : 1);
     }
 
+    public setMagnet(target: Entity, radius: number) {
+        this._magnetTarget = target;
+        this._magnetRadius = radius;
+    }
+
     public attractTo(target: Entity) {
         this._magnetTarget = target;
         this._magnetRadius = Number.POSITIVE_INFINITY;
