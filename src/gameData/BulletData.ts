@@ -11,6 +11,8 @@ export type BulletData = {
     shape: BulletShape;
     /** Coop: index of the ship that fired (0 for P1), absent for enemy bullets */
     owner?: number;
+    /** DANGER bullet (orange): always hurts, cannot be absorbed nor turned by a burst */
+    hazard?: boolean;
     /** Drawing alpha: the other players' shots are see-through, so each player tells its own apart */
     alpha?: number;
 }

@@ -6,6 +6,7 @@ import Button from "../ui/Button.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 import Sfx from "../audio/Sfx.ts";
+import Net from "../net/Net.ts";
 import {oppositePolarity, Polarity, PolarityData, POLARITY_STYLES} from "../gameData/PolarityData.ts";
 
 export default class MainUIScene extends Scene {
@@ -34,6 +35,7 @@ export default class MainUIScene extends Scene {
     private _dialogue: GameObjects.Container;
     private _dialogueName: GameObjects.Text;
     private _dialogueText: GameObjects.Text;
+    private _dialogueSkip: GameObjects.Text;
     private _dialogueTimers: Phaser.Time.TimerEvent[] = [];
     private _sfx: Sfx;
 
@@ -235,16 +237,25 @@ export default class MainUIScene extends Scene {
         this._dialogueText = this.add.text(-boxWidth / 2 + 36, -boxHeight / 2 + 40, '',
             {...UiStyle.body(46, UiStyle.TEXT_CSS), wordWrap: {width: boxWidth - 72}, lineSpacing: 14});
         // Under the boss bar, far from the ships at the bottom of the screen
+        this._dialogueSkip = this.add.text(boxWidth / 2 - 24, boxHeight / 2 - 22, 'TOUCHE POUR PASSER >',
+            UiStyle.text(22, UiStyle.MUTED_CSS)).setOrigin(1, 1);
+        this.tweens.add({targets: this._dialogueSkip, alpha: 0.35, duration: 600, yoyo: true, repeat: -1});
         this._dialogue = this.add.container(width / 2, MainUIScene.DIALOGUE_Y,
-            [shadow, panel, this._dialogueName, this._dialogueText]).setVisible(false);
+            [shadow, panel, this._dialogueName, this._dialogueText, this._dialogueSkip]).setVisible(false);
     }
 
     /**
      * Retro dialogue box: each line is typed letter by letter, then the next one replaces it.
      */
-    private showDialogue(speaker: string, lines: string[], lineMs: number) {
+    /** @param skippable shows "tap to skip"; only the solo player or the host can */
+    private showDialogue(speaker: string, lines: string[], lineMs: number, skippable: boolean = false) {
+        this._dialogueSkip.setVisible(skippable && Net.role !== 'guest');
         this._dialogueTimers.forEach(timer => timer.remove());
         this._dialogueTimers = [];
+        if (lines.length === 0) {
+            this._dialogue.setVisible(false);
+            return;
+        }
         this._dialogueName.setText(UiStyle.upper(speaker));
         this._dialogue.setVisible(true);
 

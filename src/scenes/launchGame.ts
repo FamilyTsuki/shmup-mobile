@@ -29,10 +29,6 @@ export default function launchGame(scene: Scene, saveManager: SaveManager, targe
         return;
     }
 
-    GyroSensor.requestAccess().then((granted) => {
-        // Without the sensor the ship could not move: fall back to touch for this device
-        if (!granted)
-            Settings.setControlMode(saveManager, 'touch');
-        start();
-    });
+    // Without the sensor the ship could not move: a refusal switches to touch for this visit (see Settings)
+    GyroSensor.requestAccess().then(() => start());
 }

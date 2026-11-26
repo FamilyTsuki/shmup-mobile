@@ -38,6 +38,9 @@ export default class EntityManager extends Plugins.ScenePlugin {
     private static readonly MAX_COINS_PER_ENEMY: number = 4;
     /** Converted bullets fan out a little around their target */
     private static readonly CONVERTED_SPREAD_RAD: number = 0.12;
+    private static readonly SPLIT_SPREAD_PX: number = 90;
+    /** Split parts appear around the middle of the dead enemy (spawnEnemy places them one height higher) */
+    private static readonly SPLIT_DROP_PX: number = 50;
 
     // noinspection JSUnusedGlobalSymbols
     private readonly bulletGroupConfig = {
@@ -255,7 +258,8 @@ export default class EntityManager extends Plugins.ScenePlugin {
         let converted = 0;
         this._enemyBullets.getMatching('active', true).forEach(child => {
             const bullet = child as Bullet;
-            if (Phaser.Math.Distance.Between(x, y, bullet.x, bullet.y) > radius)
+            // DANGER bullets resist the burst: they have to be dodged
+            if (bullet.hazard || Phaser.Math.Distance.Between(x, y, bullet.x, bullet.y) > radius)
                 return;
 
             const shot = this._playerBullets.get() as Bullet | null;
@@ -329,6 +333,16 @@ export default class EntityManager extends Plugins.ScenePlugin {
 
         if (Math.random() < enemy.enemyData.dropChance)
             this.spawnPickup(this.randomPowerUp(), enemy.x, enemy.y, 0);
+
+        // Splits into smaller enemies, one of each color in turn, spread around where it died
+        const split = enemy.enemyData.split;
+        if (split) {
+            for (let i = 0; i < split.count; i++) {
+                const offset = (i - (split.count - 1) / 2) * EntityManager.SPLIT_SPREAD_PX;
+                this.spawnEnemy(split.enemy, enemy.x + offset, enemy.y + EntityManager.SPLIT_DROP_PX, enemy.difficulty,
+                    i % 2 === 0 ? 'ion' : 'plasma');
+            }
+        }
     }
 
     private randomPowerUp(): PowerUpType {
@@ -371,9 +385,17 @@ export default class EntityManager extends Plugins.ScenePlugin {
     }
 
     private initEnemyCollisions(enemies: Physics.Arcade.Group) {
-        this.scene!.physics.add.overlap(this._playerBullets, enemies, (bullet, enemy) => {
-            (bullet as Bullet).disable();
-            (enemy as Enemy).getComponent(Health)?.damage(this.shotDamage(bullet as Bullet, (enemy as Enemy).polarity));
+        this.scene!.physics.add.overlap(this._playerBullets, enemies, (bulletObject, enemyObject) => {
+            const bullet = bulletObject as Bullet;
+            const enemy = enemyObject as Enemy;
+            bullet.disable();
+            // Shielded: its own color bounces off
+            if (enemy.enemyData.shielded && bullet.polarity === enemy.polarity) {
+                enemy.deflect();
+                return;
+            }
+            // DANGER enemies have no polarity: no bonus either way
+            enemy.getComponent(Health)?.damage(enemy.enemyData.hazard ? bullet.damage : this.shotDamage(bullet, enemy.polarity));
         });
 
         this.scene!.physics.add.overlap(this._players, enemies, (player, enemy) => {

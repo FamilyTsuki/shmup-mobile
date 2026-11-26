@@ -4,7 +4,10 @@ import GyroSensor from "./GyroSensor.ts";
 export type GyroSettings = {
     /** 1 = full speed at MAX_TILT_DEG, 2 = full speed at half that tilt */
     sensitivity: number;
+    /** Left/right */
     invert: boolean;
+    /** Forward/back */
+    invertY: boolean;
 };
 
 /**
@@ -34,7 +37,8 @@ export default class GyroInput implements IInputSource {
         const tilt = GyroSensor.relativeTiltDeg * (this.settings.invert ? -1 : 1);
         this._axis += (this.axisFor(tilt) - this._axis) * GyroInput.SMOOTHING;
         // Top of the phone tipped away (pitch going down) moves the ship forward, up the screen
-        this._axisY += (this.axisFor(GyroSensor.relativePitchDeg) - this._axisY) * GyroInput.SMOOTHING;
+        const pitch = GyroSensor.relativePitchDeg * (this.settings.invertY ? -1 : 1);
+        this._axisY += (this.axisFor(pitch) - this._axisY) * GyroInput.SMOOTHING;
 
         state.moveX = this._axis;
         state.moveY = this._axisY;

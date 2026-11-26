@@ -9,6 +9,12 @@ class GyroSensor {
     private _neutralDeg: number = 0;
     private _pitchDeg: number = 0;
     private _neutralPitchDeg: number = 0;
+    private _denied: boolean = false;
+
+    /** The player or the browser refused the sensor during this visit: play with the finger instead */
+    public get denied(): boolean {
+        return this._denied;
+    }
 
     /** True once the device sent at least one orientation event. Desktops expose the API without data. */
     public get hasData(): boolean {
@@ -36,7 +42,14 @@ class GyroSensor {
      * Must be called from a user gesture (tap): iOS only shows its permission prompt then.
      */
     public async requestAccess(): Promise<boolean> {
-        if (!this.isSupported)
+        const granted = await this.askPermission();
+        this._denied = !granted;
+        return granted;
+    }
+
+    private async askPermission(): Promise<boolean> {
+        // Browsers only send orientation events to HTTPS pages
+        if (!this.isSupported || !window.isSecureContext)
             return false;
 
         const orientationEvent = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> };

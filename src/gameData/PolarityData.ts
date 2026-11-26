@@ -14,6 +14,12 @@ export type PolarityRule = Polarity | 'alternate' | 'random';
 
 export const POLARITIES: readonly Polarity[] = ['ion', 'plasma'];
 
+/**
+ * Colors of the things on screen: a polarity, or DANGER (orange) for what always hurts, whatever the player's
+ * polarity: bullets that cannot be absorbed, enemies that ram the ship.
+ */
+export type ShipColor = Polarity | 'hazard';
+
 export type PolarityStyle = {
     name: string;
     /** Main color */
@@ -28,6 +34,9 @@ export const POLARITY_STYLES: { readonly [polarity in Polarity]: PolarityStyle }
     ion: {name: 'ION', color: 0x46a9c6, css: '#46a9c6', lightCss: '#9be0ec'},
     plasma: {name: 'PLASMA', color: 0xd0577f, css: '#d0577f', lightCss: '#f3a9c1'},
 });
+
+/** Orange: far from the cyan and the pink of the polarities */
+export const HAZARD_STYLE: PolarityStyle = Object.freeze({name: 'DANGER', color: 0xff9a2e, css: '#ff9a2e', lightCss: '#ffd08a'});
 
 export function oppositePolarity(polarity: Polarity): Polarity {
     return polarity === 'ion' ? 'plasma' : 'ion';

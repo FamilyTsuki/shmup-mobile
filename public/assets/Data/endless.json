@@ -16,7 +16,10 @@
         "weaver": 1,
         "kamikaze": 2,
         "turret": 3,
-        "tank": 4
+        "tank": 4,
+        "prism": 3,
+        "splitter": 4,
+        "warden": 5
     },
     "formations": ["random", "column", "sides", "line", "v"],
     "polarities": ["ion", "plasma", "alternate", "random"],

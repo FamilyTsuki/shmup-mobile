@@ -66,7 +66,8 @@
         "movement": {
             "type": "chase",
             "horizontalSpeed": 0.25
-        }
+        },
+        "hazard": true
     },
     "tank": {
         "texture": "hex",
@@ -81,9 +82,9 @@
         },
         "weapon": {
             "bullet": {
-                "width": 35,
-                "height": 35,
-                "speed": 390,
+                "width": 70,
+                "height": 70,
+                "speed": 300,
                 "damage": 1
             },
             "bulletCount": 7,
@@ -114,7 +115,8 @@
                 "width": 52,
                 "height": 20,
                 "speed": 710,
-                "damage": 1
+                "damage": 1,
+                "hazard": true
             },
             "bulletCount": 1,
             "spreadAngleDeg": 0,
@@ -122,6 +124,112 @@
             "fireDelayMs": [
                 1200,
                 1800
+            ]
+        }
+    },
+    "prism": {
+        "texture": "prism",
+        "scale": 1,
+        "health": 3,
+        "speed": 0.14,
+        "score": 35,
+        "dropChance": 0.3,
+        "telegraphMs": 350,
+        "polarityCycleMs": 2200,
+        "movement": {
+            "type": "sine",
+            "frequency": 0.0025,
+            "amplitude": 140
+        },
+        "weapon": {
+            "bullet": {
+                "width": 38,
+                "height": 38,
+                "speed": 480,
+                "damage": 1
+            },
+            "bulletCount": 2,
+            "spreadAngleDeg": 24,
+            "aimed": true,
+            "fireDelayMs": [
+                1700,
+                2500
+            ]
+        }
+    },
+    "splitter": {
+        "texture": "splitter",
+        "scale": 1.1,
+        "health": 4,
+        "speed": 0.1,
+        "score": 40,
+        "dropChance": 0.3,
+        "telegraphMs": 400,
+        "split": {
+            "enemy": "mini",
+            "count": 2
+        },
+        "movement": {
+            "type": "straight"
+        },
+        "weapon": {
+            "bullet": {
+                "width": 52,
+                "height": 52,
+                "speed": 400,
+                "damage": 1
+            },
+            "bulletCount": 3,
+            "spreadAngleDeg": 50,
+            "aimed": false,
+            "fireDelayMs": [
+                2200,
+                3000
+            ]
+        }
+    },
+    "mini": {
+        "texture": "mini",
+        "scale": 1,
+        "health": 1,
+        "speed": 0.3,
+        "score": 10,
+        "dropChance": 0.05,
+        "telegraphMs": 0,
+        "movement": {
+            "type": "chase",
+            "horizontalSpeed": 0.2
+        },
+        "hazard": true
+    },
+    "warden": {
+        "texture": "warden",
+        "scale": 1.15,
+        "health": 5,
+        "speed": 0.09,
+        "score": 50,
+        "dropChance": 0.4,
+        "telegraphMs": 450,
+        "shielded": true,
+        "movement": {
+            "type": "hover",
+            "stopY": 360,
+            "stayMs": 7000,
+            "swayAmplitude": 100
+        },
+        "weapon": {
+            "bullet": {
+                "width": 64,
+                "height": 64,
+                "speed": 360,
+                "damage": 1
+            },
+            "bulletCount": 5,
+            "spreadAngleDeg": 60,
+            "aimed": true,
+            "fireDelayMs": [
+                2000,
+                2800
             ]
         }
     }

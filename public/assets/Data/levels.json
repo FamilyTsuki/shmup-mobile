@@ -50,6 +50,18 @@
                     ]
                 },
                 {
+                    "hint": "ORANGE = DANGER\nça blesse toujours : esquive !",
+                    "groups": [
+                        {
+                            "enemy": "kamikaze",
+                            "count": 5,
+                            "formation": "sides",
+                            "intervalMs": 700,
+                            "polarity": "ion"
+                        }
+                    ]
+                },
+                {
                     "hint": "Jauge chargée + changement\n= BASCULE\nJauge pleine = SURCHARGE",
                     "groups": [
                         {
@@ -102,6 +114,26 @@
                             "intervalMs": 700,
                             "delayMs": 1000,
                             "polarity": "plasma"
+                        }
+                    ]
+                },
+                {
+                    "hint": "Le PRISME change de couleur :\nil clignote juste avant",
+                    "groups": [
+                        {
+                            "enemy": "prism",
+                            "count": 3,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "scout",
+                            "count": 4,
+                            "formation": "random",
+                            "intervalMs": 800,
+                            "polarity": "random",
+                            "delayMs": 2000
                         }
                     ]
                 },
@@ -169,6 +201,26 @@
                             "intervalMs": 600,
                             "delayMs": 2000,
                             "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "hint": "Le DIVISEUR se sépare\nen deux en mourant",
+                    "groups": [
+                        {
+                            "enemy": "splitter",
+                            "count": 3,
+                            "formation": "column",
+                            "intervalMs": 1500,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "weaver",
+                            "count": 3,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "random",
+                            "delayMs": 3000
                         }
                     ]
                 },
@@ -244,6 +296,26 @@
                             "intervalMs": 500,
                             "delayMs": 1000,
                             "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "hint": "GARDIEN : sa couleur rebondit\nsur son bouclier, change de couleur !",
+                    "groups": [
+                        {
+                            "enemy": "warden",
+                            "count": 2,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "kamikaze",
+                            "count": 6,
+                            "formation": "sides",
+                            "intervalMs": 500,
+                            "polarity": "random",
+                            "delayMs": 2500
                         }
                     ]
                 },
@@ -337,6 +409,33 @@
                             "intervalMs": 0,
                             "delayMs": 2000,
                             "polarity": "alternate"
+                        }
+                    ]
+                },
+                {
+                    "groups": [
+                        {
+                            "enemy": "warden",
+                            "count": 2,
+                            "formation": "line",
+                            "intervalMs": 0,
+                            "polarity": "alternate"
+                        },
+                        {
+                            "enemy": "prism",
+                            "count": 4,
+                            "formation": "v",
+                            "intervalMs": 0,
+                            "polarity": "random",
+                            "delayMs": 2000
+                        },
+                        {
+                            "enemy": "splitter",
+                            "count": 2,
+                            "formation": "random",
+                            "intervalMs": 1500,
+                            "polarity": "alternate",
+                            "delayMs": 4000
                         }
                     ]
                 },

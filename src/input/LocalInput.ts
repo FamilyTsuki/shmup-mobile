@@ -19,7 +19,7 @@ export default class LocalInput implements IInputSource {
     constructor(scene: Scene, gyro?: GyroSettings) {
         this._keyboard = new KeyboardInput(scene);
         this._touch = new TouchInput(scene);
-        this._gyro = new GyroInput(gyro ?? {sensitivity: 1, invert: false});
+        this._gyro = new GyroInput(gyro ?? {sensitivity: 1, invert: false, invertY: false});
         this.applyControls(gyro);
     }
 

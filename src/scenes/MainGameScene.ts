@@ -21,7 +21,7 @@ import type {LevelData, LevelsData} from "../gameData/LevelData.ts";
 import type {PowerUpsData, PowerUpType} from "../gameData/PowerUpData.ts";
 import type {PlayerShipsData} from "../gameData/PlayerShipsData.ts";
 import {computePlayerStats, UpgradesData} from "../gameData/UpgradeData.ts";
-import {Polarity, PolarityData, POLARITY_STYLES} from "../gameData/PolarityData.ts";
+import {HAZARD_STYLE, Polarity, PolarityData, POLARITY_STYLES} from "../gameData/PolarityData.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import Net from "../net/Net.ts";
@@ -81,6 +81,7 @@ export default class MainGameScene extends Scene {
     private _scoreManager: ScoreManager;
     private _powerUps: PowerUpsData;
     private _boss: Boss | null;
+    private _introSkippable: boolean = false;
     private _sfx: Sfx;
     private _effects: Effects;
     private _player: Player;
@@ -268,6 +269,7 @@ export default class MainGameScene extends Scene {
         const boss = this.entityManager.spawnBoss(this._level.boss, this._difficulty);
         Music.play(this.sound, 'boss');
         this._boss = boss;
+        this.allowIntroSkip(boss, this._level.boss);
         this.registry.set(RegistryConstants.Keys.BOSS_NAME, boss.bossData.name);
         this.registry.set(RegistryConstants.Keys.BOSS_POLARITY, boss.polarity);
         this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, 1);
@@ -301,7 +303,7 @@ export default class MainGameScene extends Scene {
     }
 
     private onEnemyKilled(enemy: Enemy) {
-        const color = POLARITY_STYLES[enemy.polarity].color;
+        const color = enemy.enemyData.hazard ? HAZARD_STYLE.color : POLARITY_STYLES[enemy.polarity].color;
         this._effects.explosion(enemy.x, enemy.y, color, Math.round(MainGameScene.PARTICLES_PER_SCALE * enemy.scale));
         this._sfx.explosion();
     }
@@ -392,7 +394,35 @@ export default class MainGameScene extends Scene {
     }
 
     private onBossSpeak(speaker: string, lines: string[], lineMs: number) {
-        this.hud('dialogue', [speaker, lines, lineMs]);
+        this.hud('dialogue', [speaker, lines, lineMs, this._boss?.isTalking === true && this._introSkippable]);
+    }
+
+    /**
+     * Intro already seen: a tap (or ENTER) skips it. The first time, it plays in full and is remembered.
+     */
+    private allowIntroSkip(boss: Boss, bossKey: string) {
+        const seen: string[] = this.saveManager.getData(SaveConstants.Keys.SEEN_BOSS_INTROS) ?? [];
+        this._introSkippable = seen.includes(bossKey);
+
+        const skip = () => {
+            if (!boss.isTalking)
+                return;
+            boss.skipIntro();
+            // Empty lines close the dialogue box, here and on the guests
+            this.hud('dialogue', [boss.bossData.name, [], 0, false]);
+        };
+        if (this._introSkippable) {
+            this.input.on(Input.Events.POINTER_DOWN, skip);
+            this.input.keyboard?.on('keydown-ENTER', skip);
+        }
+
+        this.events.once(Boss.PHASE_CHANGED_EVENT, () => {
+            this.input.off(Input.Events.POINTER_DOWN, skip);
+            this.input.keyboard?.off('keydown-ENTER', skip);
+            this._introSkippable = false;
+            if (!seen.includes(bossKey))
+                this.saveManager.setData(SaveConstants.Keys.SEEN_BOSS_INTROS, [...seen, bossKey]);
+        });
     }
 
     private onBossPolarityChanged(polarity: Polarity) {

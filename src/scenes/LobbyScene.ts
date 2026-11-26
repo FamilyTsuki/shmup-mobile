@@ -47,7 +47,7 @@ export default class LobbyScene extends Scene {
         const centerX = this.scale.width / 2;
         new Backdrop(this, 0.5);
         this.add.text(centerX, 180, 'COOP', UiStyle.text(130)).setOrigin(0.5);
-        this._status = this.add.text(centerX, 1660, CoopFlow.closedMessage, {...UiStyle.body(40, '#f6d55c'), align: 'center'})
+        this._status = this.add.text(centerX, 1560, CoopFlow.closedMessage, {...UiStyle.body(40, '#f6d55c'), align: 'center'})
             .setOrigin(0.5);
         CoopFlow.closedMessage = '';
 
@@ -106,7 +106,7 @@ export default class LobbyScene extends Scene {
             this._code = '';
             this.show('code');
         }));
-        this.track(new Button(this, centerX, 1780, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME)));
+        this.track(Button.icon(this, centerX, 1780, 'back', () => this.scene.start(GameConstants.SceneKeys.HOME)));
     }
 
     /** A phone friendly keypad: room codes are digits only */
@@ -133,7 +133,7 @@ export default class LobbyScene extends Scene {
                     this.joinRoom();
             }, LobbyScene.KEY));
         });
-        this.track(new Button(this, centerX, 1780, 'RETOUR', () => this.show('menu')));
+        this.track(Button.icon(this, centerX, 1780, 'back', () => this.show('menu')));
     }
 
     private buildRoom() {
@@ -171,11 +171,13 @@ export default class LobbyScene extends Scene {
         }
 
         // Coop has its own credits and upgrades, spent here
-        this.track(new Button(this, centerX, 1580, 'BOUTIQUE COOP', () => this.scene.start(GameConstants.SceneKeys.SHOP)));
-        this.track(new Button(this, centerX, 1780, 'QUITTER LE SALON', () => {
-            Net.leave();
-            this.show('menu');
-        }));
+        Button.iconRow(this, 1760, [
+            ['shop', () => this.scene.start(GameConstants.SceneKeys.SHOP)],
+            ['exit', () => {
+                Net.leave();
+                this.show('menu');
+            }],
+        ]).forEach(button => this.track(button));
     }
 
     /** Host: from the room and the guests' hellos. Guest: as announced by the host */

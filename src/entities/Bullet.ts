@@ -25,6 +25,12 @@ export default class Bullet extends Phaser.GameObjects.Image {
     private _returnTarget: Point | null = null;
     private _returning: boolean = false;
     private _owner: number = -1;
+    private _hazard: boolean = false;
+
+    /** DANGER (orange): always hurts the player, whatever its polarity */
+    public get hazard(): boolean {
+        return this._hazard;
+    }
 
     /** Coop: index of the ship that fired it, -1 for enemy bullets */
     public get owner(): number {
@@ -48,7 +54,8 @@ export default class Bullet extends Phaser.GameObjects.Image {
     }
 
     public enable(x: number, y: number, velocityX: number, velocityY: number, data: BulletData) {
-        const key = TextureFactory.bulletKey(data.shape, data.polarity);
+        this._hazard = data.hazard === true;
+        const key = TextureFactory.bulletKey(data.shape, this._hazard ? 'hazard' : data.polarity);
         this.setTexture(key);
         this.setPosition(x, y);
         this.setOrigin(0.5);

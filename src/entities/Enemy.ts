@@ -20,6 +20,9 @@ export default class Enemy extends Entity {
     private static readonly HIT_SLOW_FACTOR: number = 0.5;
     private static readonly TELEGRAPH_SCALE: number = 1.2;
     private static readonly RESPAWN_MARGIN: number = 100;
+    /** Blinks this long before a polarity flip, so the player sees it coming */
+    private static readonly FLIP_WARNING_MS: number = 450;
+    private static readonly DEFLECT_TINT: number = 0x9a93ab;
 
     private _type: string;
     private _data: EnemyData;
@@ -32,6 +35,10 @@ export default class Enemy extends Entity {
     private _slowedUntil: number = 0;
     private _slowFactor: number = 1;
     private _scaredUntil: number = 0;
+    private _difficulty: number = 1;
+    /** Time since the last polarity flip, for enemies that change color */
+    private _flipElapsed: number = 0;
+    private _flipWarning: Phaser.Tweens.Tween | null = null;
 
     public get enemyType(): string {
         return this._type;
@@ -43,6 +50,11 @@ export default class Enemy extends Entity {
 
     public get polarity(): Polarity {
         return this._polarity;
+    }
+
+    /** Health and fire rate multiplier it was spawned with: its split parts get the same */
+    public get difficulty(): number {
+        return this._difficulty;
     }
 
     /** What aimed weapons and chasing movements go after: the closest player still alive */
@@ -67,6 +79,8 @@ export default class Enemy extends Entity {
         if (data.weapon) {
             // Shared with the weapon: changing its polarity recolors the next shots
             this._bulletData = toBulletData(data.weapon.bullet, this._polarity);
+            if (data.hazard)
+                this._bulletData.hazard = true;
             this.addComponent(new SpreadWeapon(bulletsGroup, this._bulletData,
                 data.weapon.bulletCount, data.weapon.spreadAngleDeg));
             this._shootTimer = this.scene.time.addEvent({delay: data.weapon.fireDelayMs[1], paused: true});
@@ -94,7 +108,10 @@ export default class Enemy extends Entity {
      * @param difficulty multiplies health and fire rate
      */
     public enable(x: number, y: number, difficulty: number = 1, polarity: Polarity = 'ion') {
+        this._difficulty = difficulty;
         this.setPolarity(polarity);
+        this.setAlpha(1);
+        this._flipElapsed = 0;
         this.setScale(this._data.scale);
         this.enableBody(true, x, y - this.displayHeight, true, true);
         this.clearTint();
@@ -138,15 +155,42 @@ export default class Enemy extends Entity {
     public disable() {
         this._telegraph?.stop();
         this._telegraph = null;
+        this._flipWarning?.stop();
+        this._flipWarning = null;
 
         this.disableBody(true, true);
         if (this._shootTimer)
             this._shootTimer.paused = true;
     }
 
+    /** A shot of its own color hit the shield: a grey flash, no damage */
+    public deflect() {
+        this.setTint(Enemy.DEFLECT_TINT);
+        this.scene.time.delayedCall(Enemy.HIT_FLASH_MS, () => {
+            if (!this.tintFill)
+                this.clearTint();
+        });
+    }
+
+    /** Blinks, then flips to the other color */
+    private warnFlip() {
+        if (!this.active)
+            return;
+        this._flipWarning?.stop();
+        this._flipWarning = this.scene.tweens.add({
+            targets: this, alpha: 0.35, duration: Enemy.FLIP_WARNING_MS / 6, yoyo: true, repeat: 2,
+            onComplete: () => {
+                this._flipWarning = null;
+                this.setAlpha(1);
+                if (this.active)
+                    this.setPolarity(this._polarity === 'ion' ? 'plasma' : 'ion');
+            }
+        });
+    }
+
     private setPolarity(polarity: Polarity) {
         this._polarity = polarity;
-        this.setTexture(TextureFactory.shipKey(this._data.texture, polarity));
+        this.setTexture(TextureFactory.shipKey(this._data.texture, this._data.hazard ? 'hazard' : polarity));
         if (this._bulletData)
             this._bulletData.polarity = polarity;
 
@@ -206,6 +250,15 @@ export default class Enemy extends Entity {
         if (this.x < -this.displayWidth || this.x > camera.width + this.displayWidth) {
             this.disable();
             return;
+        }
+
+        const cycle = this._data.polarityCycleMs;
+        if (cycle) {
+            this._flipElapsed += deltaTime;
+            if (this._flipElapsed >= cycle) {
+                this._flipElapsed = 0;
+                this.warnFlip();
+            }
         }
 
         if (this.scared)

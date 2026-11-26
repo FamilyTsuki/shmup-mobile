@@ -33,6 +33,17 @@ export type EnemyData = {
     telegraphMs: number;
     movement: MovementData;
     weapon?: EnemyWeaponData;
+    /** Flips its polarity this often, blinking just before */
+    polarityCycleMs?: number;
+    /** Splits into these enemies when killed, one of each polarity in turn */
+    split?: { enemy: string, count: number };
+    /** A shield of its own color: only shots of the opposite polarity hurt it, the others bounce off */
+    shielded?: boolean;
+    /**
+     * DANGER (orange): it rams the ship, its color always means "avoid". It takes the same damage from both
+     * polarities, and its bullets, if any, always hurt.
+     */
+    hazard?: boolean;
 };
 
 export type EnemiesData = {

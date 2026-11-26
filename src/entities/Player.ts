@@ -195,6 +195,7 @@ export default class Player extends Entity {
 
     /**
      * An enemy bullet touched the ship: absorbed if it has the ship polarity, a hit otherwise.
+     * DANGER bullets (orange) always hit.
      */
     public touchBullet(bullet: Bullet) {
         if (!this.active || this._ghost)
@@ -202,7 +203,7 @@ export default class Player extends Entity {
 
         bullet.disable();
         const overloaded = this._polarityData.overloadAtFullCharge && this._charge >= Player.MAX_CHARGE;
-        if (bullet.polarity !== this._polarity || overloaded) {
+        if (bullet.hazard || bullet.polarity !== this._polarity || overloaded) {
             this.hit(bullet.damage);
             return;
         }

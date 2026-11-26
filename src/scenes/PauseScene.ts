@@ -6,6 +6,7 @@ import Settings from "../managers/Settings.ts";
 import Button from "../ui/Button.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import Net from "../net/Net.ts";
+import type {IconName} from "../utils/TextureFactory.ts";
 import AudioBus from "../audio/AudioBus.ts";
 import type {OptionsSceneData} from "./OptionsScene.ts";
 
@@ -39,18 +40,20 @@ export default class PauseScene extends Scene {
         if (Net.role === 'guest')
             this.add.text(centerX, 700, "La partie continue chez l'hôte", UiStyle.body(40)).setOrigin(0.5);
 
-        new Button(this, centerX, 900, 'REPRENDRE', () => this.resumeGame());
+        Button.icon(this, centerX, 920, 'play', () => this.resumeGame(), Button.BIG_ICON_STYLE);
+        const row: [IconName, () => void][] = [];
         if (Settings.getControls(this.saveManager).mode === 'gyro') {
-            new Button(this, centerX, 1100, 'RECALIBRER', () => {
+            row.push(['target', () => {
                 GyroSensor.calibrate();
                 this.resumeGame();
-            });
+            }]);
         }
-        new Button(this, centerX, 1300, 'OPTIONS', () => {
+        row.push(['gear', () => {
             this.scene.launch(GameConstants.SceneKeys.OPTIONS, {returnTo: GameConstants.SceneKeys.PAUSE} satisfies OptionsSceneData);
             this.scene.sleep();
-        });
-        new Button(this, centerX, 1500, 'QUITTER', () => this.quitGame());
+        }]);
+        row.push(['exit', () => this.quitGame()]);
+        Button.iconRow(this, 1220, row);
 
         this.scene.bringToTop();
 

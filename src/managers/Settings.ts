@@ -3,6 +3,7 @@ import SaveConstants from "../SaveConstants.ts";
 import type {GyroSettings} from "../input/GyroInput.ts";
 import type {Sound} from "phaser";
 import AudioBus from "../audio/AudioBus.ts";
+import GyroSensor from "../input/GyroSensor.ts";
 
 export type ControlMode = 'touch' | 'gyro';
 
@@ -25,24 +26,43 @@ export default class Settings {
     private static readonly DEFAULT_MUSIC_VOLUME: number = 0.6;
     private static readonly DEFAULT_SFX_VOLUME: number = 0.8;
 
-    /** Phones steer by tilting until the player picks something else; computers use the keyboard */
+    /** A phone or a tablet: it can steer by tilting */
+    public static isGyroDevice(): boolean {
+        return navigator.maxTouchPoints > 0 && GyroSensor.isSupported;
+    }
+
+    /** True when the player picked the control mode in the options */
+    public static isControlModeChosen(saveManager: SaveManager): boolean {
+        return saveManager.getData(SaveConstants.Keys.CONTROL_MODE_CHOSEN) === true;
+    }
+
+    /**
+     * Phones steer by tilting unless the player picked something else, or refused the sensor during this visit;
+     * computers use the keyboard
+     */
     private static defaultControlMode(): ControlMode {
-        return navigator.maxTouchPoints > 0 && 'DeviceOrientationEvent' in window ? 'gyro' : 'touch';
+        return Settings.isGyroDevice() && !GyroSensor.denied ? 'gyro' : 'touch';
     }
 
     public static getControls(saveManager: SaveManager): ControlSettings {
         const savedMode = saveManager.getData(SaveConstants.Keys.CONTROL_MODE);
+        const chosen = Settings.isControlModeChosen(saveManager) && (savedMode === 'gyro' || savedMode === 'touch');
+        const mode: ControlMode = chosen ? savedMode : Settings.defaultControlMode();
         return {
-            mode: savedMode === 'gyro' || savedMode === 'touch' ? savedMode : Settings.defaultControlMode(),
+            // Refused sensor: the ship could not move, the finger takes over for this visit
+            mode: mode === 'gyro' && GyroSensor.denied ? 'touch' : mode,
             gyro: {
                 sensitivity: Number(saveManager.getData(SaveConstants.Keys.GYRO_SENSITIVITY)
                     ?? Settings.DEFAULT_GYRO_SENSITIVITY),
                 invert: saveManager.getData(SaveConstants.Keys.GYRO_INVERT) === true,
+                invertY: saveManager.getData(SaveConstants.Keys.GYRO_INVERT_Y) === true,
             }
         };
     }
 
+    /** The player's choice in the options: kept from one visit to the next */
     public static setControlMode(saveManager: SaveManager, mode: ControlMode) {
+        saveManager.setData(SaveConstants.Keys.CONTROL_MODE_CHOSEN, true, false);
         saveManager.setData(SaveConstants.Keys.CONTROL_MODE, mode);
     }
 
@@ -61,6 +81,10 @@ export default class Settings {
 
     public static setGyroInvert(saveManager: SaveManager, invert: boolean) {
         saveManager.setData(SaveConstants.Keys.GYRO_INVERT, invert);
+    }
+
+    public static setGyroInvertY(saveManager: SaveManager, invert: boolean) {
+        saveManager.setData(SaveConstants.Keys.GYRO_INVERT_Y, invert);
     }
 
     public static getMusicVolume(saveManager: SaveManager): number {

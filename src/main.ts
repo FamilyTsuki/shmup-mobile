@@ -16,6 +16,7 @@ import EntityManager from "./managers/EntityManager.ts";
 import SaveManager from "./managers/SaveManager.ts";
 import GameConstants from "./GameConstants.ts";
 import Music from "./audio/Music.ts";
+import StartOverlay from "./ui/StartOverlay.ts";
 
 const MENU_FADE_MS: number = 220;
 
@@ -71,6 +72,7 @@ const config: Types.Core.GameConfig = {
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Game(config);
     CoopFlow.install(game);
+    StartOverlay.show(game);
 
     // Menu screens fade in and bring back the menu theme (a no-op when it already plays)
     const menuScenes: string[] = [GameConstants.SceneKeys.HOME, GameConstants.SceneKeys.LOBBY,

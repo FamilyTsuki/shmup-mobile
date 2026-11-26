@@ -56,7 +56,7 @@ export default class BoardScene extends Scene {
         this._status = this.add.text(centerX, BoardScene.FIRST_ROW_Y + 2 * BoardScene.ROW_HEIGHT, 'Chargement...',
             UiStyle.body(40)).setOrigin(0.5);
 
-        new Button(this, centerX, 1800, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
+        Button.icon(this, centerX, 1800, 'back', () => this.scene.start(GameConstants.SceneKeys.HOME));
 
         this.refresh();
         this.time.addEvent({delay: BoardScene.REFRESH_MS, loop: true, callback: this.refresh, callbackScope: this});

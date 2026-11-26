@@ -1,6 +1,6 @@
 import {Scene} from "phaser";
 import type {PickupType} from "../gameData/PowerUpData.ts";
-import {POLARITIES, Polarity} from "../gameData/PolarityData.ts";
+import {POLARITIES, Polarity, ShipColor} from "../gameData/PolarityData.ts";
 
 export type BulletShape = 'orb' | 'needle' | 'bolt';
 
@@ -41,6 +41,9 @@ type ShadeSet = { dark: string, mid: string, light: string };
 
 type PickupStyle = { color: string, symbol: string };
 
+export type IconName = 'back' | 'next' | 'play' | 'replay' | 'home' | 'shop' | 'trophy' | 'gear' | 'soundOn' | 'soundOff'
+    | 'exit' | 'target';
+
 /**
  * Draws every texture of the game once, in one retro pixel art style: a soft limited palette,
  * dark outlines and flat shading. Small sprites are hand drawn grids; bosses are drawn at low resolution
@@ -55,6 +58,175 @@ export default class TextureFactory {
     public static readonly NEBULA_KEY: string = 'nebula';
     public static readonly STARS_FAR_KEY: string = 'starsFar';
     public static readonly STARS_NEAR_KEY: string = 'starsNear';
+
+    /** Screen pixels per art pixel of the menu icons */
+    private static readonly ICON_CELL: number = 7;
+
+    /** Menu icons, white on the buttons; "n" cuts a dark detail into the white */
+    private static readonly ICONS: { [name in IconName]: PixelGrid } = {
+        back: [
+            '.....w.......',
+            '....ww.......',
+            '...www.......',
+            '..wwwwwwwwwww',
+            '.wwwwwwwwwwww',
+            '..wwwwwwwwwww',
+            '...www.......',
+            '....ww.......',
+            '.....w.......',
+        ],
+        next: [
+            'ww.......ww',
+            'www......ww',
+            'wwww.....ww',
+            'wwwww....ww',
+            'wwwwww...ww',
+            'wwwwwww..ww',
+            'wwwwww...ww',
+            'wwwww....ww',
+            'wwww.....ww',
+            'www......ww',
+            'ww.......ww',
+        ],
+        play: [
+            'ww.......',
+            'www......',
+            'wwww.....',
+            'wwwww....',
+            'wwwwww...',
+            'wwwwwww..',
+            'wwwwwwww.',
+            'wwwwwww..',
+            'wwwwww...',
+            'wwwww....',
+            'wwww.....',
+            'www......',
+            'ww.......',
+        ],
+        replay: [
+            '....wwww.....',
+            '..wwwwwww.w..',
+            '.www....wwww.',
+            '.ww.....wwww.',
+            'ww.....wwwww.',
+            'ww...........',
+            'ww.........ww',
+            'ww.........ww',
+            '.ww.......ww.',
+            '.www.....www.',
+            '..wwwwwwwww..',
+            '....wwwww....',
+        ],
+        home: [
+            '......w......',
+            '.....www.....',
+            '....wwwww....',
+            '...wwwwwww...',
+            '..wwwwwwwww..',
+            '.wwwwwwwwwww.',
+            'wwwwwwwwwwwww',
+            '..wwwwwwwww..',
+            '..www...www..',
+            '..www...www..',
+            '..www...www..',
+            '..www...www..',
+        ],
+        shop: [
+            '....wwwww....',
+            '...ww...ww...',
+            '...w.....w...',
+            'wwwwwwwwwwwww',
+            'wwwwwwwwwwwww',
+            'wwwwwnnnwwwww',
+            'wwwwnwwwwwwww',
+            'wwwwwnnnwwwww',
+            'wwwwwwwwnwwww',
+            'wwwwwnnnwwwww',
+            'wwwwwwwwwwwww',
+            '.wwwwwwwwwww.',
+        ],
+        trophy: [
+            'wwwwwwwwwwwww',
+            'w.wwwwwwwww.w',
+            'w.wwwwwwwww.w',
+            '.wwwwwwwwwww.',
+            '..wwwwwwwww..',
+            '...wwwwwww...',
+            '.....www.....',
+            '......w......',
+            '......w......',
+            '....wwwww....',
+            '...wwwwwww...',
+        ],
+        gear: [
+            '.....www.....',
+            '..w..www..w..',
+            '.wwwwwwwwwww.',
+            '..wwwwwwwww..',
+            '.wwww...wwww.',
+            'wwww.....wwww',
+            'wwww.....wwww',
+            'wwww.....wwww',
+            '.wwww...wwww.',
+            '..wwwwwwwww..',
+            '.wwwwwwwwwww.',
+            '..w..www..w..',
+            '.....www.....',
+        ],
+        soundOn: [
+            '.....w.......',
+            '....ww....w..',
+            '...www..w..w.',
+            'wwwwww...w.w.',
+            'wwwwww.w.w..w',
+            'wwwwww.w.w..w',
+            'wwwwww.w.w..w',
+            'wwwwww...w.w.',
+            '...www..w..w.',
+            '....ww....w..',
+            '.....w.......',
+        ],
+        soundOff: [
+            '.....w.......',
+            '....ww.......',
+            '...www.......',
+            'wwwwww.w...w.',
+            'wwwwww..w.w..',
+            'wwwwww...w...',
+            'wwwwww..w.w..',
+            'wwwwww.w...w.',
+            '...www.......',
+            '....ww.......',
+            '.....w.......',
+        ],
+        exit: [
+            'wwwwwww......',
+            'ww...ww......',
+            'ww...ww...w..',
+            'ww...ww...ww.',
+            'ww..wwwwwwwww',
+            'ww..wwwwwwwww',
+            'ww...ww...ww.',
+            'ww...ww...w..',
+            'ww...ww......',
+            'wwwwwww......',
+        ],
+        target: [
+            '......w......',
+            '....wwwww....',
+            '...w..w..w...',
+            '..w...w...w..',
+            '.w.........w.',
+            '.w...www...w.',
+            'wwwwww.wwwwww',
+            '.w...www...w.',
+            '.w.........w.',
+            '..w...w...w..',
+            '...w..w..w...',
+            '....wwwww....',
+            '......w......',
+        ],
+    };
 
     /** Radius of the ring texture in texture pixels, so effects can scale it to a radius */
     public static readonly RING_RADIUS: number = 104;
@@ -77,9 +249,11 @@ export default class TextureFactory {
     };
 
     /** Softer than neon: easy on the eyes on a dark background */
-    private static readonly SHADES: { [polarity in Polarity]: ShadeSet } = {
+    private static readonly SHADES: { [color in ShipColor]: ShadeSet } = {
         ion: {dark: '#1f5a70', mid: '#46a9c6', light: '#9be0ec'},
         plasma: {dark: '#6e2547', mid: '#d0577f', light: '#f3a9c1'},
+        // DANGER: what always hurts
+        hazard: {dark: '#8a3a0a', mid: '#ff9a2e', light: '#ffd08a'},
     };
 
     private static readonly SPRITES: { [shape: string]: SpriteDef } = {
@@ -229,6 +403,75 @@ export default class TextureFactory {
                 '...ooooooo...',
             ]
         },
+        // Changes color now and then: a faceted crystal
+        prism: {
+            cell: 6, hitRadius: 5, grid: [
+                '......o......',
+                '.....olo.....',
+                '....ollmo....',
+                '...olmmmdo...',
+                '..olmmwmmdo..',
+                '.olmmwywmmdo.',
+                'olmmwyyywmmdo',
+                '.odmmwywmmdo.',
+                '..odmmwmmdo..',
+                '...odmmmdo...',
+                '....odmdo....',
+                '.....odo.....',
+                '......o......',
+            ]
+        },
+        // Splits in two when destroyed: two pods held together
+        splitter: {
+            cell: 6, hitRadius: 6, grid: [
+                '..ooo.....ooo..',
+                '.olllo...olllo.',
+                'olmmmlo.olmmmlo',
+                'olmnmmlolmmnmlo',
+                'olmymmmmmmmymlo',
+                'olmnmmdmdmmnmlo',
+                '.odmmdmmmdmmdo.',
+                '..oddmmymmddo..',
+                '...oddmmmddo...',
+                '....oddmddo....',
+                '.....oddddo....',
+                '......odo......',
+                '.......o.......',
+            ]
+        },
+        // What a splitter leaves behind
+        mini: {
+            cell: 5, hitRadius: 3.5, grid: [
+                '....o....',
+                '...olo...',
+                '..olmlo..',
+                '.olmymlo.',
+                'olmyyymlo',
+                '.odmymdo.',
+                '..odmdo..',
+                '...odo...',
+                '....o....',
+            ]
+        },
+        // Hides behind a grey shield: only the other color gets through
+        warden: {
+            cell: 6, hitRadius: 5.5, grid: [
+                '...ggggggggg...',
+                '..gGGGGGGGGGg..',
+                '.gG.........Gg.',
+                '.G...........G.',
+                '.....ooooo.....',
+                '....omlllmo....',
+                '...omlmmmlmo...',
+                '..omlmnynmlmo..',
+                '..omlmyyymlmo..',
+                '..omdmnynmdmo..',
+                '...omdmmmdmo...',
+                '....odddddo....',
+                '...oo.ooo.oo...',
+                '..oo...o...oo..',
+            ]
+        },
     };
 
     private static readonly BOSSES: { [shape: string]: BossDef } = {
@@ -248,16 +491,20 @@ export default class TextureFactory {
         bomb: {color: '#5d566e', symbol: 'B'},
     };
 
-    public static shipKey(shape: string, polarity: Polarity): string {
+    public static shipKey(shape: string, polarity: ShipColor): string {
         return `ship-${shape}-${polarity}`;
     }
 
-    public static bulletKey(shape: BulletShape, polarity: Polarity): string {
+    public static bulletKey(shape: BulletShape, polarity: ShipColor): string {
         return `bullet-${shape}-${polarity}`;
     }
 
     public static pickupKey(type: PickupType): string {
         return `pickup-${type}`;
+    }
+
+    public static iconKey(name: IconName): string {
+        return `icon-${name}`;
     }
 
     /** Body size stored on a generated texture, see TextureBodyData */
@@ -278,14 +525,27 @@ export default class TextureFactory {
             TextureFactory.createBullets(scene, polarity, palette);
         }
 
+        // DANGER versions: enemy ships that ram, bullets that always hurt
+        const hazard = TextureFactory.palette('hazard');
+        for (const [shape, sprite] of Object.entries(TextureFactory.SPRITES)) {
+            TextureFactory.createGrid(scene, TextureFactory.shipKey(shape, 'hazard'), sprite.grid, hazard,
+                sprite.cell, 'cw', {hitRadius: sprite.hitRadius * sprite.cell});
+        }
+        TextureFactory.createBullets(scene, 'hazard', hazard);
+
         for (const [type, style] of Object.entries(TextureFactory.PICKUP_STYLES))
             TextureFactory.createPickup(scene, type as PickupType, style);
 
         TextureFactory.createEffects(scene);
         TextureFactory.createBackdrop(scene);
+
+        for (const [name, grid] of Object.entries(TextureFactory.ICONS)) {
+            TextureFactory.createGrid(scene, TextureFactory.iconKey(name as IconName), TextureFactory.outlined(grid),
+                TextureFactory.NEUTRAL, TextureFactory.ICON_CELL, 'none');
+        }
     }
 
-    private static palette(polarity: Polarity): Palette {
+    private static palette(polarity: ShipColor): Palette {
         const shades = TextureFactory.SHADES[polarity];
         return {...TextureFactory.NEUTRAL, d: shades.dark, m: shades.mid, l: shades.light};
     }
@@ -293,14 +553,17 @@ export default class TextureFactory {
     // ------------------------------------------------------------------ bullets
 
     /**
-     * ION bullets are hollow rings, PLASMA bullets are filled with a white core:
-     * the shape tells the polarity apart even without colors.
+     * ION bullets are hollow rings, PLASMA bullets are filled with a white core, DANGER bullets are diamonds:
+     * the shape tells them apart even without colors.
      */
-    private static createBullets(scene: Scene, polarity: Polarity, palette: Palette) {
+    private static createBullets(scene: Scene, polarity: ShipColor, palette: Palette) {
         const ion = polarity === 'ion';
-        const orb = ion
-            ? ['..mmm..', '.mlllm.', 'mll.llm', 'ml...lm', 'mll.llm', '.mlllm.', '..mmm..']
-            : ['..mmm..', '.mlllm.', 'mllwllm', 'mlwwwlm', 'mllwllm', '.mlllm.', '..mmm..'];
+        const orbs: { [color in ShipColor]: PixelGrid } = {
+            ion: ['..mmm..', '.mlllm.', 'mll.llm', 'ml...lm', 'mll.llm', '.mlllm.', '..mmm..'],
+            plasma: ['..mmm..', '.mlllm.', 'mllwllm', 'mlwwwlm', 'mllwllm', '.mlllm.', '..mmm..'],
+            hazard: ['...m...', '..mlm..', '.mlwlm.', 'mlwwwlm', '.mlwlm.', '..mlm..', '...m...'],
+        };
+        const orb = orbs[polarity];
         // The outline adds one art pixel on each side: core = 7 art pixels of 3 screen pixels.
         // Enemy bullets are drawn big to stand out from the stars: the hitbox stays a bit smaller than the drawing
         TextureFactory.createGrid(scene, TextureFactory.bulletKey('orb', polarity), TextureFactory.outlined(orb),
@@ -308,7 +571,9 @@ export default class TextureFactory {
 
         const needle = ion
             ? ['.l.', 'mlm', 'm.m', 'm.m', 'm.m', 'm.m', 'mlm', '.m.']
-            : ['.w.', 'mwm', 'mlm', 'mwm', 'mlm', 'mwm', 'mlm', '.m.'];
+            : polarity === 'plasma'
+                ? ['.w.', 'mwm', 'mlm', 'mwm', 'mlm', 'mwm', 'mlm', '.m.']
+                : ['.w.', 'lwl', 'mwm', 'lwl', 'mwm', 'lwl', 'mwm', '.m.'];
         TextureFactory.createGrid(scene, TextureFactory.bulletKey('needle', polarity), TextureFactory.outlined(needle),
             palette, 3, 'cw', {hitRadius: 4, coreSize: 9});
 

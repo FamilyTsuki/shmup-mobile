@@ -40,6 +40,6 @@ export default class LevelSelectScene extends Scene {
                 .setEnabled(!locked);
         });
 
-        new Button(this, centerX, 1780, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
+        Button.icon(this, centerX, 1780, 'back', () => this.scene.start(GameConstants.SceneKeys.HOME));
     }
 }

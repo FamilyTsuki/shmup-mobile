@@ -56,6 +56,12 @@ export default class Boss extends Entity {
     private _nextJumpMs: number = 0;
     /** True while a lunge or a jump tween moves the boss */
     private _busy: boolean = false;
+    private _introTimer: Time.TimerEvent | null = null;
+
+    /** Saying its intro lines, before the fight */
+    public get isTalking(): boolean {
+        return this._state === 'talking';
+    }
 
     public get bossData(): BossData {
         return this._data;
@@ -122,7 +128,15 @@ export default class Boss extends Entity {
 
         this._state = 'talking';
         this.speak(intro);
-        this.scene.time.delayedCall(intro.length * Boss.LINE_MS, () => this.beginPhases());
+        this._introTimer = this.scene.time.delayedCall(intro.length * Boss.LINE_MS, () => this.beginPhases());
+    }
+
+    /** Cuts the intro lines short and starts fighting right away */
+    public skipIntro() {
+        if (this._state !== 'talking')
+            return;
+        this._introTimer?.remove();
+        this.beginPhases();
     }
 
     private beginPhases() {

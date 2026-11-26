@@ -35,3 +35,56 @@ body {
     width: 100%;
     height: 100%;
 }
+
+/* "Tap to play" screen of phones (src/ui/StartOverlay.ts) */
+@font-face {
+    font-family: 'Press Start 2P';
+    src: url('assets/Fonts/PressStart2P-Regular.ttf') format('truetype');
+}
+
+#start-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 1.5rem;
+    background: rgba(15, 12, 29, 0.94);
+    font-family: 'Press Start 2P', monospace;
+    text-align: center;
+    cursor: pointer;
+}
+
+#start-overlay .start-title {
+    font-size: clamp(1.4rem, 7vw, 2.6rem);
+    color: #ffffff;
+}
+
+#start-overlay .ion {
+    color: #9be0ec;
+}
+
+#start-overlay .plasma {
+    color: #f3a9c1;
+}
+
+#start-overlay .start-tap {
+    font-size: clamp(0.9rem, 4.5vw, 1.4rem);
+    color: #f6d55c;
+    animation: start-blink 1.2s steps(2, start) infinite;
+}
+
+#start-overlay .start-hint {
+    font-size: clamp(0.55rem, 2.8vw, 0.8rem);
+    line-height: 1.8;
+    color: #9a93ab;
+}
+
+@keyframes start-blink {
+    to {
+        visibility: hidden;
+    }
+}

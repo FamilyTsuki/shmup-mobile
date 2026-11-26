@@ -49,9 +49,9 @@ export default class ShopScene extends Scene {
                 () => launchGame(this, this.saveManager, {endless}));
         else if (Progress.isCoop)
             // Still in the coop room: back to it
-            new Button(this, this.scale.width / 2, 1845, 'SALON', () => this.scene.start(GameConstants.SceneKeys.LOBBY, {}));
+            Button.icon(this, this.scale.width / 2, 1820, 'back', () => this.scene.start(GameConstants.SceneKeys.LOBBY, {}));
         else
-            new Button(this, this.scale.width / 2, 1845, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
+            Button.icon(this, this.scale.width / 2, 1820, 'back', () => this.scene.start(GameConstants.SceneKeys.HOME));
 
         this.build();
     }

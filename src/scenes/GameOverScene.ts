@@ -13,6 +13,7 @@ import Leaderboard from "../net/Leaderboard.ts";
 import PlayerName from "../managers/PlayerName.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
+import type {IconName} from "../utils/TextureFactory.ts";
 import Music from "../audio/Music.ts";
 
 
@@ -24,6 +25,8 @@ export default class GameOverScene extends Scene {
     private static readonly INPUT_DELAY_MS: number = 800;
     private static readonly BOARD_ROWS: number = 8;
     private static readonly STINGER_MS: number = 4500;
+    private static readonly MAIN_ICON_Y: number = 1360;
+    private static readonly ICON_ROW_Y: number = 1640;
     private static readonly BOARD_FIRST_ROW_Y: number = 960;
     private static readonly BOARD_ROW_HEIGHT: number = 62;
 
@@ -80,27 +83,35 @@ export default class GameOverScene extends Scene {
             this.tweens.add({targets: waiting, alpha: 0.3, duration: 600, yoyo: true, repeat: -1});
             this.time.delayedCall(GameOverScene.INPUT_DELAY_MS, () => {
                 // The shop goes back to the room; the host's next start pulls this player into the game from there
-                new Button(this, centerX, 1400, 'BOUTIQUE COOP', () => this.scene.start(GameConstants.SceneKeys.SHOP));
-                new Button(this, centerX, 1580, 'QUITTER LE SALON', () => {
-                    Net.leave();
-                    this.scene.start(GameConstants.SceneKeys.HOME);
-                });
+                Button.iconRow(this, 1500, [
+                    ['shop', () => this.scene.start(GameConstants.SceneKeys.SHOP)],
+                    ['exit', () => {
+                        Net.leave();
+                        this.scene.start(GameConstants.SceneKeys.HOME);
+                    }],
+                ]);
             });
             return;
         }
 
         // Buttons appear after a short delay so a finger still on the screen does not press one
         this.time.delayedCall(GameOverScene.INPUT_DELAY_MS, () => {
-            let y = 1220;
-            if (hasNextLevel) {
-                new Button(this, centerX, y, 'NIVEAU SUIVANT', () => launchGame(this, this.saveManager, result.level + 1));
-                y += 180;
-            }
-            new Button(this, centerX, y, 'REJOUER', () => launchGame(this, this.saveManager, result.level));
-            new Button(this, centerX, y + 180, 'BOUTIQUE', () => this.scene.start(GameConstants.SceneKeys.SHOP));
-            // Coop host: back to the room, the guests stay connected
-            new Button(this, centerX, y + 360, Net.role === 'host' ? 'SALON' : 'MENU',
-                () => this.scene.start(Net.role === 'host' ? GameConstants.SceneKeys.LOBBY : GameConstants.SceneKeys.HOME, {}));
+            // The main action big in the middle, the others in a row under it
+            const replay = () => launchGame(this, this.saveManager, result.level);
+            if (hasNextLevel)
+                Button.icon(this, centerX, GameOverScene.MAIN_ICON_Y, 'next',
+                    () => launchGame(this, this.saveManager, result.level + 1), Button.BIG_ICON_STYLE);
+            else
+                Button.icon(this, centerX, GameOverScene.MAIN_ICON_Y, 'replay', replay, Button.BIG_ICON_STYLE);
+
+            const row: [IconName, () => void][] = [
+                // Coop host: back to the room, the guests stay connected
+                ['home', () => this.scene.start(Net.role === 'host' ? GameConstants.SceneKeys.LOBBY : GameConstants.SceneKeys.HOME, {})],
+                ['shop', () => this.scene.start(GameConstants.SceneKeys.SHOP)],
+            ];
+            if (hasNextLevel)
+                row.push(['replay', replay]);
+            Button.iconRow(this, GameOverScene.ICON_ROW_Y, row);
         });
 
         // Ignore the OS key repeat: SPACE is often still held from shooting when the run ends
@@ -155,8 +166,8 @@ export default class GameOverScene extends Scene {
 
         const replay = () => launchGame(this, this.saveManager, {endless: newEndlessRun()});
         this.time.delayedCall(GameOverScene.INPUT_DELAY_MS, () => {
-            new Button(this, centerX, 1560, 'REJOUER', replay);
-            new Button(this, centerX, 1740, 'MENU', () => this.scene.start(GameConstants.SceneKeys.HOME));
+            Button.icon(this, centerX, 1560, 'replay', replay, Button.BIG_ICON_STYLE);
+            Button.icon(this, centerX, 1790, 'home', () => this.scene.start(GameConstants.SceneKeys.HOME));
         });
         this.input.keyboard?.on('keydown-SPACE', (event: KeyboardEvent) => {
             if (!event.repeat)

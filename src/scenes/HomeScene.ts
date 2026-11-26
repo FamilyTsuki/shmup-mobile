@@ -21,7 +21,7 @@ import SampleBank from "../audio/SampleBank.ts";
 export default class HomeScene extends Phaser.Scene {
     private static readonly MENU_BUTTON: ButtonStyle = {width: 640, height: 116, fontSize: 50, fillColor: UiStyle.PANEL};
     private static readonly FIRST_BUTTON_Y: number = 1090;
-    private static readonly BUTTON_STEP: number = 140;
+    private static readonly BUTTON_STEP: number = 150;
 
     private saveManager: SaveManager;
 
@@ -112,12 +112,15 @@ export default class HomeScene extends Phaser.Scene {
             ['INFINI', () => this.playEndless()],
             ['NIVEAUX', () => this.scene.start(GameConstants.SceneKeys.LEVEL_SELECT)],
             ['COOP', () => this.scene.start(GameConstants.SceneKeys.LOBBY, {})],
-            ['BOUTIQUE', () => this.scene.start(GameConstants.SceneKeys.SHOP)],
-            ['CLASSEMENT', () => this.scene.start(GameConstants.SceneKeys.BOARD)],
-            ['OPTIONS', () => this.scene.start(GameConstants.SceneKeys.OPTIONS)],
         ];
         menu.forEach(([label, onClick], index) => new Button(this, centerX,
             HomeScene.FIRST_BUTTON_Y + index * HomeScene.BUTTON_STEP, label, onClick, HomeScene.MENU_BUTTON));
+        // The secondary screens as icons, under the ways to play
+        Button.iconRow(this, HomeScene.FIRST_BUTTON_Y + menu.length * HomeScene.BUTTON_STEP + 80, [
+            ['shop', () => this.scene.start(GameConstants.SceneKeys.SHOP)],
+            ['trophy', () => this.scene.start(GameConstants.SceneKeys.BOARD)],
+            ['gear', () => this.scene.start(GameConstants.SceneKeys.OPTIONS)],
+        ]);
 
         const controls = Settings.getControls(this.saveManager);
         this.add.text(centerX, 1880, `Contrôle : ${controls.mode === 'gyro' ? 'gyroscope' : 'doigt'}`,

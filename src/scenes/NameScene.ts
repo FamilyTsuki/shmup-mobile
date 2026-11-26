@@ -44,7 +44,7 @@ export default class NameScene extends Scene {
         this.add.text(centerX, 860, 'Il apparait dans le classement', UiStyle.body(40)).setOrigin(0.5);
 
         this._okButton = new Button(this, centerX, 1150, this._next === 'endless' ? 'JOUER' : 'VALIDER', () => this.confirm());
-        new Button(this, centerX, 1360, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
+        Button.icon(this, centerX, 1360, 'back', () => this.scene.start(GameConstants.SceneKeys.HOME));
 
         this._input = document.createElement('input');
         Object.assign(this._input.style, NameScene.INPUT_STYLE);
