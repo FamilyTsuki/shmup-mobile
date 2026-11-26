@@ -15,7 +15,7 @@
   "2": {
     "name": "Intercepteur",
     "description": "Rapide, +1 projectile",
-    "price": 400,
+    "price": 1200,
     "bonus": {
       "bulletCount": 1
     },
@@ -30,7 +30,7 @@
   "3": {
     "name": "Foudre",
     "description": "Très rapide, +1 dégât, +1 vie",
-    "price": 900,
+    "price": 3000,
     "bonus": {
       "damage": 1,
       "maxHealth": 1

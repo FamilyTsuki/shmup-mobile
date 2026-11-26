@@ -6,7 +6,7 @@ import Button from "../ui/Button.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import launchGame from "./launchGame.ts";
-import {newEndlessRun} from "../gameData/EndlessData.ts";
+import Progress from "../managers/Progress.ts";
 
 export type NameSceneData = {
     /** "endless" starts a run once the nickname is set, "home" goes back to the title */
@@ -86,7 +86,7 @@ export default class NameScene extends Scene {
         PlayerName.set(this.saveManager, name);
         this._input.blur();
         if (this._next === 'endless')
-            launchGame(this, this.saveManager, {endless: newEndlessRun()});
+            launchGame(this, this.saveManager, {endless: Progress.endlessRunToPlay(this.saveManager)});
         else
             this.scene.start(GameConstants.SceneKeys.HOME);
     }

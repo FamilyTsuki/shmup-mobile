@@ -557,10 +557,14 @@ export default class MainGameScene extends Scene {
     private finishEndlessStage(victory: boolean, score: number, kills: number, credits: number, newBestScore: boolean) {
         const stage = this._endless!.stage;
         if (victory) {
+            // Saved: leaving the game now, the next visit goes on from the next stage
+            const next = {stage: stage + 1, score, kills};
+            Progress.saveEndlessRun(this.saveManager, next);
             this.scene.stop(GameConstants.SceneKeys.MAIN_UI);
-            this.scene.start(GameConstants.SceneKeys.SHOP, {endless: {stage: stage + 1, score, kills}});
+            this.scene.start(GameConstants.SceneKeys.SHOP, {endless: next});
             return;
         }
+        Progress.clearEndlessRun(this.saveManager);
 
         const name = PlayerName.get(this.saveManager);
         const result: GameOverData = {

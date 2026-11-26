@@ -10,8 +10,8 @@
         "enemyDamage": 6,
         "bossDamage": 14,
         "convertedBullet": {
-            "width": 21,
-            "height": 9,
+            "width": 25,
+            "height": 11,
             "speed": 1100,
             "damage": 2
         }

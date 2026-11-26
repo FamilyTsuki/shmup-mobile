@@ -2,7 +2,7 @@
     "levels": [
         {
             "name": "Orbite basse",
-            "difficulty": 1.25,
+            "difficulty": 1.38,
             "boss": "mothership",
             "waves": [
                 {
@@ -84,7 +84,7 @@
         },
         {
             "name": "Champ de débris",
-            "difficulty": 1.5,
+            "difficulty": 1.65,
             "boss": "orchid",
             "waves": [
                 {
@@ -171,7 +171,7 @@
         },
         {
             "name": "Nébuleuse rouge",
-            "difficulty": 1.8,
+            "difficulty": 1.98,
             "boss": "dreadnought",
             "waves": [
                 {
@@ -277,7 +277,7 @@
         },
         {
             "name": "Avant-poste",
-            "difficulty": 2.1,
+            "difficulty": 2.31,
             "boss": "blade",
             "waves": [
                 {
@@ -371,7 +371,7 @@
         },
         {
             "name": "Cœur de la flotte",
-            "difficulty": 2.5,
+            "difficulty": 2.75,
             "boss": "overlord",
             "waves": [
                 {

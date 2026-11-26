@@ -13,7 +13,6 @@ import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import {POLARITY_STYLES} from "../gameData/PolarityData.ts";
 import PlayerName from "../managers/PlayerName.ts";
-import {newEndlessRun} from "../gameData/EndlessData.ts";
 import BoardScene from "./BoardScene.ts";
 import type {NameSceneData} from "./NameScene.ts";
 import SampleBank from "../audio/SampleBank.ts";
@@ -108,8 +107,10 @@ export default class HomeScene extends Phaser.Scene {
             .setOrigin(0.5).setInteractive({useHandCursor: true})
             .on('pointerup', () => this.scene.start(GameConstants.SceneKeys.NAME, {next: 'home'} satisfies NameSceneData));
 
+        const endless = Progress.getEndlessRun(this.saveManager);
         const menu: [string, () => void][] = [
-            ['INFINI', () => this.playEndless()],
+            // A saved run goes on where it stopped
+            [endless ? `INFINI - ETAPE ${endless.stage}` : 'INFINI', () => this.playEndless()],
             ['NIVEAUX', () => this.scene.start(GameConstants.SceneKeys.LEVEL_SELECT)],
             ['COOP', () => this.scene.start(GameConstants.SceneKeys.LOBBY, {})],
         ];
@@ -165,7 +166,7 @@ export default class HomeScene extends Phaser.Scene {
     /** The leaderboard needs a nickname: ask it once, before the first run */
     private playEndless() {
         if (PlayerName.get(this.saveManager))
-            launchGame(this, this.saveManager, {endless: newEndlessRun()});
+            launchGame(this, this.saveManager, {endless: Progress.endlessRunToPlay(this.saveManager)});
         else
             this.scene.start(GameConstants.SceneKeys.NAME, {next: 'endless'} satisfies NameSceneData);
     }

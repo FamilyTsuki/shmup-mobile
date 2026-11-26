@@ -22,6 +22,8 @@ export default class SaveConstants {
         UNLOCKED_SHIPS: 'unlockedShips',
         /** Nickname on the endless mode leaderboard */
         PLAYER_NAME: 'playerName',
+        /** Endless mode run in progress, saved after each cleared stage: the next visit goes on from there */
+        ENDLESS_RUN: 'endlessRun',
         /** Keys of the bosses whose intro the player has seen: a tap skips it next time */
         SEEN_BOSS_INTROS: 'seenBossIntros',
     } as const);

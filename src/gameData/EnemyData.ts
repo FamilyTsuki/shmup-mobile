@@ -46,6 +46,11 @@ export type EnemyData = {
     hazard?: boolean;
 };
 
+/** Enemy and boss bullets fly faster on harder levels and endless stages, up to a cap */
+export function bulletSpeedFactor(difficulty: number): number {
+    return Math.min(1 + 0.12 * Math.max(0, difficulty - 1), 1.7);
+}
+
 export type EnemiesData = {
     [enemyType: string]: EnemyData;
 };

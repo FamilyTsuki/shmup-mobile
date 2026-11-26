@@ -1,5 +1,5 @@
 {
-    "creditsPerScore": 0.1,
+    "creditsPerScore": 0.07,
     "bossCreditCoins": 25,
     "dropWeights": {"rapidFire": 3, "multiShot": 3, "shield": 2, "heal": 1, "bomb": 1},
     "rapidFire": {"durationMs": 8000, "fireRateMultiplier": 2},

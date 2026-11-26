@@ -5,7 +5,7 @@ import SpreadWeapon from "../components/SpreadWeapon.ts";
 import EnemyMovement from "../components/movement/EnemyMovement.ts";
 import createEnemyMovement from "../components/movement/createEnemyMovement.ts";
 import {BulletData, toBulletData} from "../gameData/BulletData.ts";
-import type {EnemyData} from "../gameData/EnemyData.ts";
+import {bulletSpeedFactor, EnemyData} from "../gameData/EnemyData.ts";
 import type {Polarity} from "../gameData/PolarityData.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 
@@ -121,6 +121,8 @@ export default class Enemy extends Entity {
         this._movement.reset(this);
 
         const weapon = this._data.weapon;
+        if (weapon && this._bulletData)
+            this._bulletData.speed = Math.round(weapon.bullet.speed * bulletSpeedFactor(difficulty));
         if (weapon && this._shootTimer) {
             this._shootTimer.reset({
                 delay: Phaser.Math.Between(weapon.fireDelayMs[0], weapon.fireDelayMs[1]) / difficulty,

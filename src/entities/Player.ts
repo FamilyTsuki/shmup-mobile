@@ -39,8 +39,8 @@ export default class Player extends Entity {
     private static readonly AURA_SCALE: number = 0.62;
 
     private readonly _bulletData: BulletData = {
-        width: 21,
-        height: 9,
+        width: 25,
+        height: 11,
         speed: 1100,
         damage: 1,
         polarity: 'ion',

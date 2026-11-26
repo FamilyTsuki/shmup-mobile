@@ -7,6 +7,7 @@ import {BulletData, toBulletData} from "../gameData/BulletData.ts";
 import type {BossData, BossOriginKey, BossPatternData, BossPhaseData, PatternPolarity} from "../gameData/BossData.ts";
 import {oppositePolarity, Polarity, POLARITY_STYLES, resolvePolarity} from "../gameData/PolarityData.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
+import {bulletSpeedFactor} from "../gameData/EnemyData.ts";
 
 type BossState = 'entering' | 'talking' | 'fighting' | 'dead';
 
@@ -57,6 +58,7 @@ export default class Boss extends Entity {
     /** True while a lunge or a jump tween moves the boss */
     private _busy: boolean = false;
     private _introTimer: Time.TimerEvent | null = null;
+    private readonly _bulletSpeedFactor: number;
 
     /** Saying its intro lines, before the fight */
     public get isTalking(): boolean {
@@ -87,6 +89,7 @@ export default class Boss extends Entity {
         this._bullets = bullets;
         this._findTarget = findTarget;
         this._polarity = data.phases[0].polarity;
+        this._bulletSpeedFactor = bulletSpeedFactor(difficulty);
 
         this.setScale(data.scale);
         this.angle = data.upright ? 0 : 90;
@@ -287,7 +290,8 @@ export default class Boss extends Entity {
 
     private spawnBullet(x: number, y: number, angle: number, data: BulletData): Bullet | null {
         const bullet = this._bullets.get() as Bullet | null;
-        bullet?.enable(x, y, Math.cos(angle) * data.speed, Math.sin(angle) * data.speed, data);
+        const scaled = {...data, speed: data.speed * this._bulletSpeedFactor};
+        bullet?.enable(x, y, Math.cos(angle) * scaled.speed, Math.sin(angle) * scaled.speed, scaled);
         return bullet;
     }
 
