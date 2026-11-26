@@ -9,6 +9,8 @@ import LevelSelectScene from "./scenes/LevelSelectScene.ts";
 import ShopScene from "./scenes/ShopScene.ts";
 import LobbyScene from "./scenes/LobbyScene.ts";
 import RemoteGameScene from "./scenes/RemoteGameScene.ts";
+import NameScene from "./scenes/NameScene.ts";
+import BoardScene from "./scenes/BoardScene.ts";
 import CoopFlow from "./net/CoopFlow.ts";
 import EntityManager from "./managers/EntityManager.ts";
 import SaveManager from "./managers/SaveManager.ts";
@@ -56,7 +58,9 @@ const config: Types.Core.GameConfig = {
         LevelSelectScene,
         ShopScene,
         LobbyScene,
-        RemoteGameScene
+        RemoteGameScene,
+        NameScene,
+        BoardScene
     ]
 };
 

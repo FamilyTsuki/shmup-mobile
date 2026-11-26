@@ -14,7 +14,9 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     const request = event.request;
-    if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin)
+    const url = new URL(request.url);
+    // The leaderboard is live data: never served from the cache
+    if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/api/'))
         return;
 
     event.respondWith(

@@ -8,10 +8,18 @@ import Button, {ButtonStyle} from "../ui/Button.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
+import type {EndlessRun} from "../gameData/EndlessData.ts";
+import launchGame from "./launchGame.ts";
+
+export type ShopSceneData = {
+    /** Endless mode, between two stages: the shop goes on to this next stage instead of the title */
+    endless?: EndlessRun;
+};
 
 
 /**
  * Spends banked credits on permanent upgrades and ships. Rebuilt after each purchase.
+ * Also opens after each boss of the endless mode.
  */
 export default class ShopScene extends Scene {
     private static readonly BUY_BUTTON: ButtonStyle = {width: 280, height: 130, fontSize: 40, fillColor: UiStyle.PANEL};
@@ -29,11 +37,17 @@ export default class ShopScene extends Scene {
     }
 
     // noinspection JSUnusedGlobalSymbols
-    create() {
+    create(data?: ShopSceneData) {
         this._content = [];
         new Backdrop(this, 0.5);
         this.add.text(this.scale.width / 2, 130, 'BOUTIQUE', UiStyle.text(100)).setOrigin(0.5);
-        new Button(this, this.scale.width / 2, 1845, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
+
+        const endless = data?.endless;
+        if (endless)
+            new Button(this, this.scale.width / 2, 1845, `ETAPE ${endless.stage} >`,
+                () => launchGame(this, this.saveManager, {endless}));
+        else
+            new Button(this, this.scale.width / 2, 1845, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
 
         this.build();
     }

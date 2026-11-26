@@ -33,6 +33,7 @@
     },
     "dependencies": {
         "phaser": "^3.90.0",
+        "qrcode-generator": "^2.0.4",
         "terser": "^5.44.0",
         "ws": "^8.23.0"
     }

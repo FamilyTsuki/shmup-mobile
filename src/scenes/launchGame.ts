@@ -7,18 +7,19 @@ import type {MainGameSceneData} from "./MainGameScene.ts";
 import Net from "../net/Net.ts";
 
 /**
- * Starts a level from a tap: asks for fullscreen and the gyroscope permission, which browsers only grant
- * during a user gesture, then starts the game and its HUD.
+ * Starts a level, or a stage of the endless mode, from a tap: asks for fullscreen and the gyroscope permission,
+ * which browsers only grant during a user gesture, then starts the game and its HUD.
+ * @param target index in levels.json, or the scene data of an endless stage
  */
-export default function launchGame(scene: Scene, saveManager: SaveManager, level: number) {
+export default function launchGame(scene: Scene, saveManager: SaveManager, target: number | MainGameSceneData) {
     if (scene.sys.game.device.input.touch && scene.scale.fullscreen.available && !scene.scale.isFullscreen)
         scene.scale.startFullscreen();
 
+    const data: MainGameSceneData = typeof target === 'number' ? {level: target} : target;
     const start = () => {
-        // Coop host: the guests start their side at the same time
-        if (Net.role === 'host')
-            Net.sendToGuests({k: 'start', level});
-        const data: MainGameSceneData = {level};
+        // Coop host: the guests start their side at the same time. The endless mode is solo only.
+        if (Net.role === 'host' && data.level !== undefined)
+            Net.sendToGuests({k: 'start', level: data.level});
         scene.scene.launch(GameConstants.SceneKeys.MAIN_UI);
         scene.scene.start(GameConstants.SceneKeys.MAIN_GAME, data);
     };

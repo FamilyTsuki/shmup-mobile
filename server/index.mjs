@@ -1,4 +1,5 @@
 // Coop server: serves the built game (dist/) and relays messages between the players of a room.
+// Also keeps the endless mode leaderboard (scores.mjs, /api/scores).
 // The host's browser runs the game; this server only forwards messages, it knows nothing about the game.
 //
 //   npm run build && npm run server        production, one port for the game and the WebSocket
@@ -8,6 +9,7 @@ import {createServer} from 'node:http';
 import {readFile, stat} from 'node:fs/promises';
 import {extname, join, normalize, resolve} from 'node:path';
 import {WebSocketServer} from 'ws';
+import {handleScores} from './scores.mjs';
 
 const PORT = Number(process.env.PORT ?? 3001);
 const DIST = resolve(import.meta.dirname, '..', 'dist');
@@ -28,7 +30,11 @@ const MIME = {
 
 const server = createServer(async (request, response) => {
     try {
-        const path = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname);
+        const url = new URL(request.url ?? '/', 'http://localhost');
+        if (await handleScores(request, response, url))
+            return;
+
+        const path = decodeURIComponent(url.pathname);
         // normalize() resolves "..": the file must stay inside dist/
         let file = normalize(join(DIST, path));
         if (!file.startsWith(DIST)) {

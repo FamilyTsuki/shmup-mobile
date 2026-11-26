@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Endless mode leaderboard (server/scores.mjs)
+data

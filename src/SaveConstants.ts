@@ -12,5 +12,7 @@ export default class SaveConstants {
         UNLOCKED_LEVEL: 'unlockedLevel',
         SELECTED_SHIP: 'selectedShip',
         UNLOCKED_SHIPS: 'unlockedShips',
+        /** Nickname on the endless mode leaderboard */
+        PLAYER_NAME: 'playerName',
     } as const);
 }

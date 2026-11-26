@@ -38,6 +38,13 @@ Branche de travail : `mobile-game` (créée depuis `eval`, qui reste intacte).
 - [x] Fini de gagner sans bouger : ennemis non tués reviennent par le haut, tirs visés, surcharge à jauge pleine (`overloadAtFullCharge`).
 - [x] Boss qui parlent (boîte de dialogue, intro / phases / défaite) et nouveaux patterns : `curtain`, `ring`, `lunge`, `boomerang`, `traps`, polarité `counter`. Deux boss originaux : Orchidée Vorace et Lame Écarlate (duelliste).
 
+## Phase 2c — Game jam : mode infini + classement
+- [x] Mode INFINI (`endless.json`, `EndlessData`) : étapes générées au hasard (vagues puis boss dans l'ordre de `bossOrder`), plus de vagues, d'ennemis et de difficulté à chaque étape ; score et ennemis tués cumulés.
+- [x] Boutique entre chaque boss : bouton « ETAPE n > » qui lance l'étape suivante.
+- [x] Pseudo (`NameScene`, champ HTML par-dessus le canvas) demandé avant la première partie ; modifiable en touchant le pseudo sur l'accueil.
+- [x] Classement serveur (`server/scores.mjs`, `GET/POST /api/scores`, meilleur score par pseudo, fichier `data/scores.json` ou `SCORES_FILE`) ; rang + top 8 en fin de partie.
+- [x] Écran CLASSEMENT pour le projecteur : grand QR code (`?jam` : pseudo puis partie) + top 10 rafraîchi toutes les 5 s.
+
 ## Phase 3 — Multijoueur coop
 - [x] Coop 2–4 joueurs, hôte autoritaire : l'hôte simule, les invités envoient leurs entrées (30 Hz) et reçoivent des instantanés génériques (20 Hz) interpolés. Le vaisseau de l'invité est déplacé en local (pas de latence sur son propre vaisseau).
 - [x] Transport : WebSocket relayé par le serveur (au lieu de WebRTC P2P) : marche en 4G et derrière tous les NAT sans TURN. Isolé dans `src/net/Net.ts`, WebRTC possible plus tard.

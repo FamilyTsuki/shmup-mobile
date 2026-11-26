@@ -1,0 +1,24 @@
+{
+    "firstStageWaves": 3,
+    "extraWavePerStages": 2,
+    "maxWaves": 6,
+    "difficultyStart": 1,
+    "difficultyPerStage": 0.2,
+    "maxGroupsPerWave": 3,
+    "groupCount": [3, 6],
+    "extraEnemyPerStages": 2,
+    "maxGroupCount": 10,
+    "maxAtOnceCount": 5,
+    "intervalMs": [450, 1100],
+    "groupDelayMs": 1600,
+    "enemyUnlockStage": {
+        "scout": 1,
+        "weaver": 1,
+        "kamikaze": 2,
+        "turret": 3,
+        "tank": 4
+    },
+    "formations": ["random", "column", "sides", "line", "v"],
+    "polarities": ["ion", "plasma", "alternate", "random"],
+    "bossOrder": ["mothership", "orchid", "dreadnought", "blade", "overlord"]
+}

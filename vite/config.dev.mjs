@@ -22,9 +22,11 @@ export default defineConfig(({ mode }) => {
             host: mobile,
             // Reached through the Cloudflare tunnel
             allowedHosts: ['game.tsuki-dev.fr'],
-            // Coop rooms: the WebSocket goes to the Node server (npm run server)
+            // Coop rooms and leaderboard: the WebSocket and /api go to the Node server (npm run server)
             proxy: {
-                '/ws': {target: 'ws://localhost:3001', ws: true}
+                '/ws': {target: 'ws://localhost:3001', ws: true},
+                // Endless mode leaderboard, kept by the same server
+                '/api': 'http://localhost:3001'
             }
         },
         // `vite preview`: the production build, served like the dev server (HTTPS on the network with --mode mobile)
@@ -33,7 +35,9 @@ export default defineConfig(({ mode }) => {
             host: mobile,
             allowedHosts: ['game.tsuki-dev.fr'],
             proxy: {
-                '/ws': {target: 'ws://localhost:3001', ws: true}
+                '/ws': {target: 'ws://localhost:3001', ws: true},
+                // Endless mode leaderboard, kept by the same server
+                '/api': 'http://localhost:3001'
             }
         },
         plugins: mobile ? [basicSsl()] : []

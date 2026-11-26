@@ -7,13 +7,21 @@ import Settings from "../managers/Settings.ts";
 import Progress from "../managers/Progress.ts";
 import type {LevelsData} from "../gameData/LevelData.ts";
 import launchGame from "./launchGame.ts";
-import Button from "../ui/Button.ts";
+import Button, {ButtonStyle} from "../ui/Button.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import {POLARITY_STYLES} from "../gameData/PolarityData.ts";
+import PlayerName from "../managers/PlayerName.ts";
+import {newEndlessRun} from "../gameData/EndlessData.ts";
+import BoardScene from "./BoardScene.ts";
+import type {NameSceneData} from "./NameScene.ts";
 
 export default class HomeScene extends Phaser.Scene {
+    private static readonly MENU_BUTTON: ButtonStyle = {width: 640, height: 116, fontSize: 50, fillColor: UiStyle.PANEL};
+    private static readonly FIRST_BUTTON_Y: number = 1090;
+    private static readonly BUTTON_STEP: number = 140;
+
     private saveManager: SaveManager;
 
     constructor() {
@@ -54,6 +62,7 @@ export default class HomeScene extends Phaser.Scene {
         this.load.json(GameConstants.DataKeys.UPGRADES, 'Data/upgrades.json');
         this.load.json(GameConstants.DataKeys.POLARITY, 'Data/polarity.json');
         this.load.json(GameConstants.DataKeys.COOP, 'Data/coop.json');
+        this.load.json(GameConstants.DataKeys.ENDLESS, 'Data/endless.json');
         this.load.audio('sfx_laser1', 'Sounds/sfx_laser1.ogg');
         this.load.audio('sfx_laser2', 'Sounds/sfx_laser2.ogg');
     }
@@ -89,21 +98,37 @@ export default class HomeScene extends Phaser.Scene {
         this.add.text(centerX, 1010, `$ ${Progress.getCredits(this.saveManager)}`,
             UiStyle.text(56, '#ffd166', '#ffb347')).setOrigin(0.5);
 
-        new Button(this, centerX, 1120, 'JOUER', () => this.scene.start(GameConstants.SceneKeys.LEVEL_SELECT));
-        new Button(this, centerX, 1290, 'COOP', () => this.scene.start(GameConstants.SceneKeys.LOBBY, {}));
-        new Button(this, centerX, 1460, 'BOUTIQUE', () => this.scene.start(GameConstants.SceneKeys.SHOP));
-        new Button(this, centerX, 1630, 'OPTIONS', () => this.scene.start(GameConstants.SceneKeys.OPTIONS));
+        // Tap the nickname to change it
+        const name = PlayerName.get(this.saveManager);
+        this.add.text(centerX, 590, name ? `PSEUDO  ${name}` : 'CHOISIR UN PSEUDO', UiStyle.body(36, '#9be0ec'))
+            .setOrigin(0.5).setInteractive({useHandCursor: true})
+            .on('pointerup', () => this.scene.start(GameConstants.SceneKeys.NAME, {next: 'home'} satisfies NameSceneData));
 
-        // A shared "?salon=1234" link goes straight to that coop room, once
-        const room = new URLSearchParams(location.search).get('salon');
-        if (room) {
-            history.replaceState(null, '', location.pathname);
-            this.scene.start(GameConstants.SceneKeys.LOBBY, {join: room});
-        }
+        const menu: [string, () => void][] = [
+            ['INFINI', () => this.playEndless()],
+            ['NIVEAUX', () => this.scene.start(GameConstants.SceneKeys.LEVEL_SELECT)],
+            ['COOP', () => this.scene.start(GameConstants.SceneKeys.LOBBY, {})],
+            ['BOUTIQUE', () => this.scene.start(GameConstants.SceneKeys.SHOP)],
+            ['CLASSEMENT', () => this.scene.start(GameConstants.SceneKeys.BOARD)],
+            ['OPTIONS', () => this.scene.start(GameConstants.SceneKeys.OPTIONS)],
+        ];
+        menu.forEach(([label, onClick], index) => new Button(this, centerX,
+            HomeScene.FIRST_BUTTON_Y + index * HomeScene.BUTTON_STEP, label, onClick, HomeScene.MENU_BUTTON));
 
         const controls = Settings.getControls(this.saveManager);
-        this.add.text(centerX, 1790, `Contrôle : ${controls.mode === 'gyro' ? 'gyroscope' : 'doigt'}`,
+        this.add.text(centerX, 1880, `Contrôle : ${controls.mode === 'gyro' ? 'gyroscope' : 'doigt'}`,
             UiStyle.body(36)).setOrigin(0.5);
+
+        // A shared "?salon=1234" link goes straight to that coop room, once.
+        // The QR code of the leaderboard ("?jam") goes to the nickname, then the endless mode.
+        const params = new URLSearchParams(location.search);
+        const room = params.get('salon');
+        if (room || params.has(BoardScene.JAM_PARAM))
+            history.replaceState(null, '', location.pathname);
+        if (room)
+            this.scene.start(GameConstants.SceneKeys.LOBBY, {join: room});
+        else if (params.has(BoardScene.JAM_PARAM))
+            this.scene.start(GameConstants.SceneKeys.NAME, {next: 'endless'} satisfies NameSceneData);
 
         // Keyboard shortcut: SPACE plays the furthest unlocked level. Ignore the OS key repeat.
         this.input.keyboard?.on('keydown-SPACE', (event: KeyboardEvent) => {
@@ -128,6 +153,14 @@ export default class HomeScene extends Phaser.Scene {
         }
         this.add.text(centerX, y + 110, 'ABSORBE. BASCULE. RENVOIE.', UiStyle.text(34, '#ffffff', UiStyle.CHROME_CSS))
             .setOrigin(0.5);
+    }
+
+    /** The leaderboard needs a nickname: ask it once, before the first run */
+    private playEndless() {
+        if (PlayerName.get(this.saveManager))
+            launchGame(this, this.saveManager, {endless: newEndlessRun()});
+        else
+            this.scene.start(GameConstants.SceneKeys.NAME, {next: 'endless'} satisfies NameSceneData);
     }
 
     private furthestLevel(): number {

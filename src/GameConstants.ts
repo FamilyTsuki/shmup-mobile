@@ -24,6 +24,8 @@ export default class GameConstants {
         SHOP: "ShopScene",
         LOBBY: "LobbyScene",
         REMOTE_GAME: "RemoteGameScene",
+        NAME: "NameScene",
+        BOARD: "BoardScene",
     } as const);
 
     public static readonly DataKeys = Object.freeze({
@@ -35,6 +37,7 @@ export default class GameConstants {
         PLAYER_SHIPS: "playerShips",
         POLARITY: "polarity",
         COOP: "coop",
+        ENDLESS: "endless",
     } as const);
 
     public static readonly MAX_SCORE_DIGITS: number = 6;

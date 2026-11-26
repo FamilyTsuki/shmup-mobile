@@ -28,10 +28,15 @@ import NetHost from "../net/NetHost.ts";
 import type {PlayerSetup} from "../managers/EntityManager.ts";
 import CoopRules from "../managers/CoopRules.ts";
 import type {CoopData} from "../gameData/CoopData.ts";
+import {buildEndlessStage, EndlessData, EndlessRun} from "../gameData/EndlessData.ts";
+import PlayerName from "../managers/PlayerName.ts";
+import Leaderboard, {SubmitResult} from "../net/Leaderboard.ts";
 
 export type MainGameSceneData = {
     /** Index in levels.json */
     level?: number;
+    /** Set for a stage of the endless mode, which then ignores level */
+    endless?: EndlessRun;
 };
 
 export type RunResultData = {
@@ -41,6 +46,13 @@ export type RunResultData = {
     kills: number;
     credits: number;
     newBestScore: boolean;
+    /** Endless mode only: the stage where the run ended */
+    stage?: number;
+};
+
+/** Endless mode: the leaderboard answer to the score sent at the end of the run */
+export type GameOverData = RunResultData & {
+    submitted?: Promise<SubmitResult | null>;
 };
 
 export default class MainGameScene extends Scene {
@@ -79,6 +91,8 @@ export default class MainGameScene extends Scene {
     private _coop: CoopRules | null = null;
     /** Enemies and bosses get tougher with each extra player */
     private _difficulty: number = 1;
+    /** Endless mode: the run so far, null for a level of levels.json */
+    private _endless: EndlessRun | null = null;
 
     constructor() {
         super(GameConstants.SceneKeys.MAIN_GAME);
@@ -87,8 +101,11 @@ export default class MainGameScene extends Scene {
     // noinspection JSUnusedGlobalSymbols
     init(data: MainGameSceneData) {
         const levels = (this.cache.json.get(GameConstants.DataKeys.LEVELS) as LevelsData).levels;
+        this._endless = data?.endless ?? null;
         this._levelIndex = Phaser.Math.Clamp(data?.level ?? 0, 0, levels.length - 1);
-        this._level = levels[this._levelIndex];
+        this._level = this._endless
+            ? buildEndlessStage(this.cache.json.get(GameConstants.DataKeys.ENDLESS) as EndlessData, this._endless.stage)
+            : levels[this._levelIndex];
         this._ended = false;
         this._boss = null;
     }
@@ -99,6 +116,11 @@ export default class MainGameScene extends Scene {
         this._powerUps = this.cache.json.get(GameConstants.DataKeys.POWER_UPS) as PowerUpsData;
         this._scoreManager = new ScoreManager(this);
         this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, -1);
+        // Endless mode: the score and kills go on from the previous stage
+        if (this._endless) {
+            this.registry.set(RegistryConstants.Keys.PLAYER_SCORE, this._endless.score);
+            this.registry.set(RegistryConstants.Keys.KILLS, this._endless.kills);
+        }
 
         const upgrades = this.cache.json.get(GameConstants.DataKeys.UPGRADES) as UpgradesData;
         const shipId = Progress.getSelectedShip(this.saveManager);
@@ -164,7 +186,7 @@ export default class MainGameScene extends Scene {
 
         this._waveManager = new WaveManager(this, this.entityManager, {...this._level, difficulty: this._difficulty});
         this._waveManager.on(WaveManager.WAVE_STARTED_EVENT, (index: number, count: number, hint?: string) => {
-            this.showBanner(`VAGUE ${index + 1}/${count}`);
+            this.showBanner(this._endless ? `VAGUE ${index + 1}` : `VAGUE ${index + 1}/${count}`);
             if (hint)
                 this.hud('hint', [hint]);
         });
@@ -176,7 +198,7 @@ export default class MainGameScene extends Scene {
         });
 
         if (this.input.keyboard) {
-            if (!this._netHost)
+            if (!this._netHost && !this._endless)
                 this.input.keyboard.addKey(Input.Keyboard.KeyCodes.R).on('down', () => this.scene.restart());
             this.input.keyboard.addKey(Input.Keyboard.KeyCodes.ESC).on('down', this.pauseGame, this);
             this.input.keyboard.addKey(Input.Keyboard.KeyCodes.P).on('down', this.pauseGame, this);
@@ -213,7 +235,8 @@ export default class MainGameScene extends Scene {
             this._labels.clear();
         });
 
-        this.showBanner(`NIVEAU ${this._levelIndex + 1}\n${this._level.name}`);
+        this.showBanner(this._endless ? `ETAPE ${this._endless.stage}`
+            : `NIVEAU ${this._levelIndex + 1}\n${this._level.name}`);
         this.time.delayedCall(MainGameScene.VICTORY_DELAY_MS, () => this._waveManager.start());
     }
 
@@ -242,7 +265,7 @@ export default class MainGameScene extends Scene {
             this.entityManager.dropCoins(boss.x, boss.y, this._powerUps.bossCreditCoins,
                 Math.ceil(boss.bossData.score * this._powerUps.creditsPerScore / this._powerUps.bossCreditCoins));
             this.time.delayedCall(MainGameScene.LOOT_ATTRACT_DELAY_MS, () => this.entityManager.attractAllPickups());
-            this.showBanner('NIVEAU TERMINE');
+            this.showBanner(this._endless ? 'ETAPE TERMINEE' : 'NIVEAU TERMINE');
             this.endRun(true, MainGameScene.VICTORY_DELAY_MS);
         });
     }
@@ -451,6 +474,11 @@ export default class MainGameScene extends Scene {
         // Credits are kept even on a lost run, so every attempt makes the ship stronger
         const credits = Number(this.registry.get(RegistryConstants.Keys.RUN_CREDITS) ?? 0);
         Progress.addCredits(this.saveManager, credits);
+        const kills = Number(this.registry.get(RegistryConstants.Keys.KILLS) ?? 0);
+        if (this._endless) {
+            this.finishEndlessStage(victory, currentScore, kills, credits, newBestScore);
+            return;
+        }
         if (victory)
             Progress.unlockLevel(this.saveManager, this._levelIndex + 1);
 
@@ -458,12 +486,32 @@ export default class MainGameScene extends Scene {
             level: this._levelIndex,
             victory,
             score: currentScore,
-            kills: Number(this.registry.get(RegistryConstants.Keys.KILLS) ?? 0),
+            kills,
             credits,
             newBestScore
         };
         if (this._netHost)
             Net.sendToGuests({k: 'end', result});
+        this.scene.start(GameConstants.SceneKeys.GAME_OVER, result);
+    }
+
+    /**
+     * Endless mode: a cleared stage opens the shop, which then starts the next one;
+     * a lost run sends its score to the leaderboard (GameOverScene shows the rank).
+     */
+    private finishEndlessStage(victory: boolean, score: number, kills: number, credits: number, newBestScore: boolean) {
+        const stage = this._endless!.stage;
+        if (victory) {
+            this.scene.stop(GameConstants.SceneKeys.MAIN_UI);
+            this.scene.start(GameConstants.SceneKeys.SHOP, {endless: {stage: stage + 1, score, kills}});
+            return;
+        }
+
+        const name = PlayerName.get(this.saveManager);
+        const result: GameOverData = {
+            level: -1, victory, score, kills, credits, newBestScore, stage,
+            submitted: name && score > 0 ? Leaderboard.submit({name, score, stage}) : Promise.resolve(null),
+        };
         this.scene.start(GameConstants.SceneKeys.GAME_OVER, result);
     }
 
