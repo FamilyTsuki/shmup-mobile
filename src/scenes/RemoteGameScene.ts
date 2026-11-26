@@ -5,6 +5,7 @@ import SaveConstants from "../SaveConstants.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import Effects from "../effects/Effects.ts";
 import Sfx from "../audio/Sfx.ts";
+import Music from "../audio/Music.ts";
 import LocalInput from "../input/LocalInput.ts";
 import type {CoopData} from "../gameData/CoopData.ts";
 import GyroSensor from "../input/GyroSensor.ts";
@@ -80,6 +81,7 @@ export default class RemoteGameScene extends Scene {
             RemoteGameScene.WASH_ALPHA).setOrigin(0);
         this._effects = new Effects(this);
         this._sfx = new Sfx(this.sound);
+        Music.play(this.sound, 'level');
 
         const controls = Settings.getControls(this.saveManager);
         if (controls.mode === 'gyro')
@@ -157,6 +159,9 @@ export default class RemoteGameScene extends Scene {
         registry.set(RegistryConstants.Keys.BOSS_NAME, hud.bossName);
         registry.set(RegistryConstants.Keys.BOSS_POLARITY, hud.bossPolarity);
         registry.set(RegistryConstants.Keys.BOSS_HEALTH, hud.bossHealth);
+        // The host has no music message: a boss on screen is enough to know
+        if (hud.bossHealth >= 0)
+            Music.play(this.sound, 'boss');
 
         const me = snapshot.players.find(player => player.id === Net.myId);
         if (me) {

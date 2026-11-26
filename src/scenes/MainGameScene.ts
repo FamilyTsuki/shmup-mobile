@@ -4,6 +4,7 @@ import Boss from "../entities/Boss.ts";
 import Enemy from "../entities/Enemy.ts";
 import Player from "../entities/Player.ts";
 import Sfx from "../audio/Sfx.ts";
+import Music from "../audio/Music.ts";
 import Effects from "../effects/Effects.ts";
 import RegistryConstants from "../RegistryConstants.ts";
 import SaveManager from "../managers/SaveManager.ts";
@@ -148,6 +149,7 @@ export default class MainGameScene extends Scene {
 
         this._sfx = new Sfx(this.sound);
         this._effects = new Effects(this);
+        Music.play(this.sound, 'level');
 
         // Coop host: one more ship per guest, driven by its messages
         const setups: PlayerSetup[] = [{input, stats, shipId, peerId: 0}];
@@ -264,6 +266,7 @@ export default class MainGameScene extends Scene {
 
     private spawnBoss() {
         const boss = this.entityManager.spawnBoss(this._level.boss, this._difficulty);
+        Music.play(this.sound, 'boss');
         this._boss = boss;
         this.registry.set(RegistryConstants.Keys.BOSS_NAME, boss.bossData.name);
         this.registry.set(RegistryConstants.Keys.BOSS_POLARITY, boss.polarity);

@@ -16,6 +16,7 @@ import PlayerName from "../managers/PlayerName.ts";
 import {newEndlessRun} from "../gameData/EndlessData.ts";
 import BoardScene from "./BoardScene.ts";
 import type {NameSceneData} from "./NameScene.ts";
+import SampleBank from "../audio/SampleBank.ts";
 
 export default class HomeScene extends Phaser.Scene {
     private static readonly MENU_BUTTON: ButtonStyle = {width: 640, height: 116, fontSize: 50, fillColor: UiStyle.PANEL};
@@ -73,7 +74,8 @@ export default class HomeScene extends Phaser.Scene {
         this.saveManager.load();
         TextureFactory.generate(this);
         RegistryConstants.initRunKeys(this.registry);
-        this.sound.mute = !Settings.isSoundEnabled(this.saveManager);
+        Settings.applyAudio(this.saveManager, this.sound);
+        SampleBank.render(this);
 
         const centerX = this.scale.width / 2;
         new Backdrop(this, 0.5);

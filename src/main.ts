@@ -1,4 +1,4 @@
-import {AUTO, Game, Scale, Types} from 'phaser';
+import {AUTO, Core, Game, Scale, Scenes, Types} from 'phaser';
 import GameOverScene from "./scenes/GameOverScene.ts";
 import HomeScene from "./scenes/HomeScene.ts";
 import MainGameScene from './scenes/MainGameScene.ts';
@@ -14,6 +14,10 @@ import BoardScene from "./scenes/BoardScene.ts";
 import CoopFlow from "./net/CoopFlow.ts";
 import EntityManager from "./managers/EntityManager.ts";
 import SaveManager from "./managers/SaveManager.ts";
+import GameConstants from "./GameConstants.ts";
+import Music from "./audio/Music.ts";
+
+const MENU_FADE_MS: number = 220;
 
 // Find out more information about the Game Config at:
 // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -67,6 +71,20 @@ const config: Types.Core.GameConfig = {
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Game(config);
     CoopFlow.install(game);
+
+    // Menu screens fade in and bring back the menu theme (a no-op when it already plays)
+    const menuScenes: string[] = [GameConstants.SceneKeys.HOME, GameConstants.SceneKeys.LOBBY,
+        GameConstants.SceneKeys.LEVEL_SELECT, GameConstants.SceneKeys.SHOP, GameConstants.SceneKeys.BOARD,
+        GameConstants.SceneKeys.NAME];
+    game.events.once(Core.Events.READY, () => {
+        for (const key of menuScenes) {
+            const scene = game.scene.getScene(key);
+            scene.sys.events.on(Scenes.Events.CREATE, () => {
+                scene.cameras.main.fadeIn(MENU_FADE_MS, 15, 12, 29);
+                Music.play(scene.sound, 'menu');
+            });
+        }
+    });
 
     // Lets the browser console inspect and drive the game while developing
     if (import.meta.env.DEV)

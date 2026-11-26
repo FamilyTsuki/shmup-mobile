@@ -1,5 +1,6 @@
 import {GameObjects, Input, Scene} from "phaser";
 import UiStyle from "./UiStyle.ts";
+import Sfx from "../audio/Sfx.ts";
 
 export type ButtonStyle = {
     width: number;
@@ -25,6 +26,8 @@ export default class Button extends GameObjects.Container {
     private static readonly SHADOW_OFFSET: number = 10;
     private static readonly SHADOW_COLOR: number = 0x0b0915;
     private static readonly DISABLED_ALPHA: number = 0.4;
+    private static readonly HOVER_BORDER_COLOR: number = 0xffffff;
+    private static readonly TAP_VIBRATION_MS: number = 8;
 
     private readonly _background: GameObjects.Rectangle;
     private readonly _label: GameObjects.Text;
@@ -45,11 +48,15 @@ export default class Button extends GameObjects.Container {
         this.setSize(style.width, style.height);
         this.setInteractive({useHandCursor: true});
 
+        const sfx = new Sfx(scene.sound);
+        // Mouse: the border lights up under the cursor
+        this.on(Input.Events.GAMEOBJECT_POINTER_OVER, () => this._background.setStrokeStyle(Button.BORDER_WIDTH, Button.HOVER_BORDER_COLOR));
         this.on(Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
             this._pressed = true;
             this.setScale(Button.PRESSED_SCALE);
         });
         this.on(Input.Events.GAMEOBJECT_POINTER_OUT, () => {
+            this._background.setStrokeStyle(Button.BORDER_WIDTH, Button.BORDER_COLOR);
             this._pressed = false;
             this.setScale(1);
         });
@@ -59,6 +66,8 @@ export default class Button extends GameObjects.Container {
 
             this._pressed = false;
             this.setScale(1);
+            sfx.click();
+            navigator.vibrate?.(Button.TAP_VIBRATION_MS);
             onClick();
         });
 

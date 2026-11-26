@@ -6,6 +6,7 @@ import Settings from "../managers/Settings.ts";
 import Button from "../ui/Button.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import Net from "../net/Net.ts";
+import AudioBus from "../audio/AudioBus.ts";
 import type {OptionsSceneData} from "./OptionsScene.ts";
 
 export type PauseSceneData = {
@@ -52,6 +53,10 @@ export default class PauseScene extends Scene {
         new Button(this, centerX, 1500, 'QUITTER', () => this.quitGame());
 
         this.scene.bringToTop();
+
+        // The music goes quiet while paused
+        AudioBus.get(this.sound)?.duckMusic(true);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => AudioBus.get(this.sound)?.duckMusic(false));
 
         this.time.delayedCall(PauseScene.RESUME_DELAY_MS, () => {
             this.input.keyboard?.once(Input.Keyboard.Events.ANY_KEY_DOWN, this.resumeGame, this);

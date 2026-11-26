@@ -5,6 +5,10 @@ export default class SaveConstants {
         GYRO_SENSITIVITY: 'gyroSensitivity',
         GYRO_INVERT: 'gyroInvert',
         SOUND_ENABLED: 'soundEnabled',
+        /** 0..1 */
+        MUSIC_VOLUME: 'musicVolume',
+        /** 0..1 */
+        SFX_VOLUME: 'sfxVolume',
         /** Credits in the bank, spent in the shop */
         CREDITS: 'credits',
         UPGRADE_LEVELS: 'upgradeLevels',

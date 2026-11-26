@@ -25,3 +25,6 @@ dist-ssr
 
 # Endless mode leaderboard (server/scores.mjs)
 data
+
+# Screenshots and recordings of the game
+captures

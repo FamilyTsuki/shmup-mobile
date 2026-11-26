@@ -13,6 +13,7 @@ import Leaderboard from "../net/Leaderboard.ts";
 import PlayerName from "../managers/PlayerName.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
+import Music from "../audio/Music.ts";
 
 
 /**
@@ -22,6 +23,7 @@ export default class GameOverScene extends Scene {
     // The finger is usually still on the screen from playing when the run ends
     private static readonly INPUT_DELAY_MS: number = 800;
     private static readonly BOARD_ROWS: number = 8;
+    private static readonly STINGER_MS: number = 4500;
     private static readonly BOARD_FIRST_ROW_Y: number = 960;
     private static readonly BOARD_ROW_HEIGHT: number = 62;
 
@@ -34,6 +36,9 @@ export default class GameOverScene extends Scene {
     // noinspection JSUnusedGlobalSymbols
     create(result: GameOverData) {
         this.scene.stop(GameConstants.SceneKeys.MAIN_UI);
+        Music.stinger(this.sound, result.victory ? 'victory' : 'defeat');
+        // The menu theme comes back once the stinger has rung out, wherever the player went meanwhile
+        this.time.delayedCall(GameOverScene.STINGER_MS, () => Music.play(this.sound, 'menu'));
         if (result.stage !== undefined) {
             this.createEndless(result);
             return;
