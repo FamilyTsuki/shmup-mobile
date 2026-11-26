@@ -17,11 +17,17 @@ export default class Settings {
     public static readonly MAX_GYRO_SENSITIVITY: number = 2.5;
     public static readonly GYRO_SENSITIVITY_STEP: number = 0.25;
 
-    private static readonly DEFAULT_GYRO_SENSITIVITY: number = 1;
+    private static readonly DEFAULT_GYRO_SENSITIVITY: number = 1.5;
+
+    /** Phones steer by tilting until the player picks something else; computers use the keyboard */
+    private static defaultControlMode(): ControlMode {
+        return navigator.maxTouchPoints > 0 && 'DeviceOrientationEvent' in window ? 'gyro' : 'touch';
+    }
 
     public static getControls(saveManager: SaveManager): ControlSettings {
+        const savedMode = saveManager.getData(SaveConstants.Keys.CONTROL_MODE);
         return {
-            mode: saveManager.getData(SaveConstants.Keys.CONTROL_MODE) === 'gyro' ? 'gyro' : 'touch',
+            mode: savedMode === 'gyro' || savedMode === 'touch' ? savedMode : Settings.defaultControlMode(),
             gyro: {
                 sensitivity: Number(saveManager.getData(SaveConstants.Keys.GYRO_SENSITIVITY)
                     ?? Settings.DEFAULT_GYRO_SENSITIVITY),

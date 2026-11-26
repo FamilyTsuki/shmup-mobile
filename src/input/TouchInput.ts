@@ -14,7 +14,8 @@ export default class TouchInput implements IInputSource {
     private static readonly TAP_MAX_DRAG: number = 24;
 
     private readonly _scene: Scene;
-    private readonly _tapToSwitch: boolean;
+    /** Gyroscope steering: any tap switches polarity */
+    public tapToSwitch: boolean;
     private _pointer: Input.Pointer | null = null;
     private _lastX: number = 0;
     private _pendingDragX: number = 0;
@@ -22,7 +23,7 @@ export default class TouchInput implements IInputSource {
 
     constructor(scene: Scene, tapToSwitch: boolean = false) {
         this._scene = scene;
-        this._tapToSwitch = tapToSwitch;
+        this.tapToSwitch = tapToSwitch;
 
         scene.input.on(Input.Events.POINTER_DOWN, this.onPointerDown, this);
         scene.input.on(Input.Events.POINTER_MOVE, this.onPointerMove, this);
@@ -61,7 +62,7 @@ export default class TouchInput implements IInputSource {
         if (this.isOverHud(pointer))
             return;
 
-        if (this._tapToSwitch) {
+        if (this.tapToSwitch) {
             this._pendingSwitch = true;
             return;
         }

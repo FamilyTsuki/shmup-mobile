@@ -140,6 +140,11 @@ export default class MainGameScene extends Scene {
         if (controls.mode === 'gyro')
             GyroSensor.calibrate();
         const input = new LocalInput(this, controls.mode === 'gyro' ? controls.gyro : undefined);
+        const onControlsChanged = () => {
+            const changed = Settings.getControls(this.saveManager);
+            input.applyControls(changed.mode === 'gyro' ? changed.gyro : undefined);
+        };
+        this.game.events.on(GameConstants.Events.CONTROLS_CHANGED_EVENT, onControlsChanged);
 
         this._sfx = new Sfx(this.sound);
         this._effects = new Effects(this);
@@ -229,6 +234,7 @@ export default class MainGameScene extends Scene {
             this._waveManager.removeAllListeners();
             this.events.off(Boss.PHASE_CHANGED_EVENT);
             this.events.off(Boss.DEFEATED_EVENT);
+            this.game.events.off(GameConstants.Events.CONTROLS_CHANGED_EVENT, onControlsChanged);
             input.destroy();
             this._netHost?.destroy();
             this._netHost = null;

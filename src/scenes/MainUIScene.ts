@@ -9,7 +9,7 @@ import Sfx from "../audio/Sfx.ts";
 import {oppositePolarity, Polarity, PolarityData, POLARITY_STYLES} from "../gameData/PolarityData.ts";
 
 export default class MainUIScene extends Scene {
-    private static readonly GAUGE_RADIUS: number = 92;
+    private static readonly GAUGE_RADIUS: number = 78;
     private static readonly GAUGE_WIDTH: number = 16;
     private static readonly MAX_LIFE_ICONS: number = 8;
 
@@ -96,13 +96,19 @@ export default class MainUIScene extends Scene {
         this._creditsText = this.add.text(width - 64, 160, '$ 0', UiStyle.text(44, '#ffd166', '#ffb347')).setOrigin(1, 0);
         this._comboText = this.add.text(64, 160, '', UiStyle.text(52, '#ffb347', '#ff6b35'));
 
-        this._bombButton = new Button(this, width - 130, height - 260, 'B',
+        // Controls live in a strip under the ship line, so they never cover it
+        const stripHeight = GameConstants.HUD_STRIP_HEIGHT;
+        const controlsY = height - stripHeight / 2;
+        this.add.rectangle(0, height - stripHeight, width, stripHeight, 0x0b0915, 0.55).setOrigin(0);
+        this.add.rectangle(0, height - stripHeight, width, 4, UiStyle.CHROME, 0.35).setOrigin(0);
+
+        this._bombButton = new Button(this, width - 130, controlsY, 'B',
             () => this.game.events.emit(GameConstants.Events.BOMB_REQUESTED_EVENT),
-            {width: 170, height: 170, fontSize: 48, fillColor: UiStyle.PANEL});
+            {width: 160, height: 160, fontSize: 44, fillColor: UiStyle.PANEL});
         this.onBombsChanged(null, Number(this.registry.get(RegistryConstants.Keys.BOMBS) ?? 0));
 
         this._burstMinCharge = (this.cache.json.get(GameConstants.DataKeys.POLARITY) as PolarityData).burst.minCharge;
-        this.createGauge(150, height - 260);
+        this.createGauge(130, controlsY);
         this.createBossBar();
         this.createDialogueBox();
         this._sfx = new Sfx(this.sound);
@@ -116,7 +122,7 @@ export default class MainUIScene extends Scene {
     private createGauge(x: number, y: number) {
         const radius = MainUIScene.GAUGE_RADIUS;
         this._gaugeGraphics = this.add.graphics();
-        this._gaugeLabel = this.add.text(0, -8, '', UiStyle.text(34, '#ffffff', UiStyle.CHROME_CSS)).setOrigin(0.5);
+        this._gaugeLabel = this.add.text(0, -8, '', UiStyle.text(30, '#ffffff', UiStyle.CHROME_CSS)).setOrigin(0.5);
         this._gaugeReady = this.add.text(0, 30, 'BASCULE', UiStyle.text(22, '#ffffff', '#ffffff')).setOrigin(0.5);
         this._gauge = this.add.container(x, y, [this._gaugeGraphics, this._gaugeLabel, this._gaugeReady]);
 

@@ -8,6 +8,11 @@ import Button, {ButtonStyle} from "../ui/Button.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
 
+export type OptionsSceneData = {
+    /** Opened from the pause menu: RETOUR wakes this sleeping scene instead of going to the title */
+    returnTo?: string;
+};
+
 export default class OptionsScene extends Scene {
     private static readonly SMALL_BUTTON: ButtonStyle = {width: 150, height: 150, fontSize: 72, fillColor: UiStyle.PANEL};
     private static readonly TILT_BAR_WIDTH: number = 800;
@@ -26,8 +31,9 @@ export default class OptionsScene extends Scene {
     }
 
     // noinspection JSUnusedGlobalSymbols
-    create() {
+    create(data?: OptionsSceneData) {
         const centerX = this.scale.width / 2;
+        const returnTo = data?.returnTo;
         new Backdrop(this, 0.5);
 
         this._soundButton = new Button(this, centerX, 380, '', () => {
@@ -62,9 +68,18 @@ export default class OptionsScene extends Scene {
         this._messageText = this.add.text(centerX, 1520, '', {fontSize: '40px', color: '#bbb', align: 'center'})
             .setOrigin(0.5);
 
-        new Button(this, centerX, 1720, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
+        new Button(this, centerX, 1720, 'RETOUR', () => {
+            if (!returnTo) {
+                this.scene.start(GameConstants.SceneKeys.HOME);
+                return;
+            }
+            this.game.events.emit(GameConstants.Events.CONTROLS_CHANGED_EVENT);
+            this.scene.stop();
+            this.scene.wake(returnTo);
+        });
 
         this.refresh();
+        this.scene.bringToTop();
     }
 
     update() {

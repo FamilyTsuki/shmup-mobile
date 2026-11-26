@@ -11,6 +11,8 @@ export default class GameConstants {
         DIALOGUE_EVENT: "dialogue",
         /** (text: string) smaller tutorial message under the banner */
         HINT_EVENT: "hint",
+        /** The options screen closed: the running game re-reads the control settings */
+        CONTROLS_CHANGED_EVENT: "controlsChanged",
     } as const);
 
     public static readonly SceneKeys = Object.freeze({
@@ -41,4 +43,8 @@ export default class GameConstants {
     } as const);
 
     public static readonly MAX_SCORE_DIGITS: number = 6;
+    /** Ship line, from the bottom of the screen: above the control strip of the HUD */
+    public static readonly PLAYER_Y_FROM_BOTTOM: number = 400;
+    /** Height of the bottom strip holding the polarity gauge and the bomb button */
+    public static readonly HUD_STRIP_HEIGHT: number = 250;
 }

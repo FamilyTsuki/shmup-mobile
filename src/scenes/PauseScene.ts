@@ -6,6 +6,7 @@ import Settings from "../managers/Settings.ts";
 import Button from "../ui/Button.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import Net from "../net/Net.ts";
+import type {OptionsSceneData} from "./OptionsScene.ts";
 
 export type PauseSceneData = {
     /** The paused game scene, the solo or host game when omitted */
@@ -44,7 +45,11 @@ export default class PauseScene extends Scene {
                 this.resumeGame();
             });
         }
-        new Button(this, centerX, 1300, 'QUITTER', () => this.quitGame());
+        new Button(this, centerX, 1300, 'OPTIONS', () => {
+            this.scene.launch(GameConstants.SceneKeys.OPTIONS, {returnTo: GameConstants.SceneKeys.PAUSE} satisfies OptionsSceneData);
+            this.scene.sleep();
+        });
+        new Button(this, centerX, 1500, 'QUITTER', () => this.quitGame());
 
         this.scene.bringToTop();
 

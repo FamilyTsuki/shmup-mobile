@@ -16,11 +16,12 @@ export default class GyroInput implements IInputSource {
     // Share of the remaining distance to the target axis covered each poll, filters sensor noise
     private static readonly SMOOTHING: number = 0.3;
 
-    private readonly _settings: GyroSettings;
+    /** Replaced when the player changes the options during a game */
+    public settings: GyroSettings;
     private _axis: number = 0;
 
     constructor(settings: GyroSettings) {
-        this._settings = settings;
+        this.settings = settings;
     }
 
     public poll(): InputState {
@@ -28,8 +29,8 @@ export default class GyroInput implements IInputSource {
         if (!GyroSensor.hasData)
             return state;
 
-        const tilt = GyroSensor.relativeTiltDeg * (this._settings.invert ? -1 : 1);
-        const maxTilt = GyroInput.MAX_TILT_DEG / this._settings.sensitivity;
+        const tilt = GyroSensor.relativeTiltDeg * (this.settings.invert ? -1 : 1);
+        const maxTilt = GyroInput.MAX_TILT_DEG / this.settings.sensitivity;
         const magnitude = Phaser.Math.Clamp(
             (Math.abs(tilt) - GyroInput.DEAD_ZONE_DEG) / (maxTilt - GyroInput.DEAD_ZONE_DEG), 0, 1);
         const target = Math.sign(tilt) * magnitude;

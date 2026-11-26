@@ -88,6 +88,7 @@ export default class RemoteGameScene extends Scene {
         this.game.events.on(GameConstants.Events.BOMB_REQUESTED_EVENT, this.requestBomb, this);
         this.game.events.on(GameConstants.Events.POLARITY_REQUESTED_EVENT, this.requestSwitch, this);
         this.game.events.on(GameConstants.Events.PAUSE_REQUESTED_EVENT, this.openMenu, this);
+        this.game.events.on(GameConstants.Events.CONTROLS_CHANGED_EVENT, this.onControlsChanged, this);
         this.input.keyboard?.on('keydown-B', this.requestBomb, this);
         this.input.keyboard?.on('keydown-ESC', this.openMenu, this);
 
@@ -96,6 +97,7 @@ export default class RemoteGameScene extends Scene {
             this.game.events.off(GameConstants.Events.BOMB_REQUESTED_EVENT, this.requestBomb, this);
             this.game.events.off(GameConstants.Events.POLARITY_REQUESTED_EVENT, this.requestSwitch, this);
             this.game.events.off(GameConstants.Events.PAUSE_REQUESTED_EVENT, this.openMenu, this);
+            this.game.events.off(GameConstants.Events.CONTROLS_CHANGED_EVENT, this.onControlsChanged, this);
             this._input.destroy();
         });
     }
@@ -109,6 +111,12 @@ export default class RemoteGameScene extends Scene {
     }
 
     /** The game goes on on the host: the menu only offers to leave */
+    /** The options were changed from the menu */
+    private onControlsChanged() {
+        const controls = Settings.getControls(this.saveManager);
+        this._input.applyControls(controls.mode === 'gyro' ? controls.gyro : undefined);
+    }
+
     private openMenu() {
         if (!this.scene.isActive())
             return;

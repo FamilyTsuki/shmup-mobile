@@ -96,7 +96,7 @@ export default class EntityManager extends Plugins.ScenePlugin {
         const camera = this.scene!.cameras.main;
         this._players = setups.map((setup, index) => {
             const x = camera.width * (index + 1) / (setups.length + 1);
-            const player = new Player(this.scene!, x, camera.height - 220, index === 0);
+            const player = new Player(this.scene!, x, camera.height - GameConstants.PLAYER_Y_FROM_BOTTOM, index === 0);
             player.peerId = setup.peerId;
             player.index = index;
             player.init(this._playerBullets, setup.input, setup.stats, this._powerUps, this._polarityData, setup.shipId);
