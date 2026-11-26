@@ -39,14 +39,25 @@ const hz = (midi: number): number => 440 * Math.pow(2, (midi - 69) / 12);
 export default class Music {
     private static _instance: Music | null = null;
 
-    private static readonly LOOKAHEAD_S: number = 0.15;
-    private static readonly TICK_MS: number = 25;
+    /** Notes are placed this far ahead: a slow frame on a phone never leaves the audio without notes */
+    private static readonly LOOKAHEAD_S: number = 0.5;
+    private static readonly TICK_MS: number = 60;
+    /** Further behind than this (a tab in the background), the track starts again from now instead of rushing */
+    private static readonly MAX_LATE_S: number = 1;
+    /** Above this many sounding oscillators, pads and staccato chords are left out: phones crackle past that */
+    private static readonly MAX_VOICES: number = 40;
     private static readonly FADE_S: number = 1.2;
     /** Each track sends this much of its sound to the hall */
     private static readonly REVERB_SEND: number = 0.32;
 
     private readonly _bus: AudioBus;
     private _current: Playing | null = null;
+    private _voices: number = 0;
+
+    /** True when there is room for more voices; drums, bass and melody always play */
+    public get hasRoom(): boolean {
+        return this._voices < Music.MAX_VOICES;
+    }
 
     public static get(sound: Sound.BaseSoundManager): Music | null {
         if (Music._instance)
@@ -139,7 +150,7 @@ export default class Music {
             return;
 
         // Back from a throttled background tab: start again from now instead of rushing to catch up
-        if (playing.nextTime < context.currentTime - 0.1)
+        if (playing.nextTime < context.currentTime - Music.MAX_LATE_S)
             playing.nextTime = context.currentTime + 0.05;
 
         const stepSeconds = 60 / playing.data.bpm / 4;
@@ -165,7 +176,7 @@ export default class Music {
 
     /** Ensemble strings: three detuned saws through a soft filter, slow bow attack */
     public strings(out: AudioNode, frequency: number, time: number, duration: number, volume: number,
-                   attack: number = 0.25) {
+                   attack: number = 0.25, voices: number = 2) {
         const context = this._bus.context;
         const filter = context.createBiquadFilter();
         filter.type = 'lowpass';
@@ -174,15 +185,8 @@ export default class Music {
         const gain = this.envelope(time, duration, volume, Math.min(attack, duration * 0.5), 0.5);
         filter.connect(gain).connect(out);
 
-        for (const detune of [-9, 0, 9]) {
-            const oscillator = context.createOscillator();
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.value = frequency;
-            oscillator.detune.value = detune;
-            oscillator.connect(filter);
-            oscillator.start(time);
-            oscillator.stop(time + duration + 0.6);
-        }
+        for (const detune of voices > 1 ? [-7, 7] : [0])
+            this.voice(filter, 'sawtooth', frequency, detune, time, time + duration + 0.6);
     }
 
     /** Brass: a bright filter sweep at the attack gives the "blare" */
@@ -197,15 +201,8 @@ export default class Music {
         const gain = this.envelope(time, duration, volume, 0.04, 0.18);
         filter.connect(gain).connect(out);
 
-        for (const detune of [-6, 6]) {
-            const oscillator = context.createOscillator();
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.value = frequency;
-            oscillator.detune.value = detune;
-            oscillator.connect(filter);
-            oscillator.start(time);
-            oscillator.stop(time + duration + 0.3);
-        }
+        for (const detune of [-6, 6])
+            this.voice(filter, 'sawtooth', frequency, detune, time, time + duration + 0.3);
     }
 
     /** "Aah" choir: saws through two vowel formants, with a slow vibrato */
@@ -214,7 +211,7 @@ export default class Music {
         const gain = this.envelope(time, duration, volume, 0.6, 0.8);
         gain.connect(out);
         const mix = context.createGain();
-        for (const [formant, q] of [[780, 6], [1150, 8], [2500, 10]]) {
+        for (const [formant, q] of [[780, 6], [1150, 8]]) {
             const band = context.createBiquadFilter();
             band.type = 'bandpass';
             band.frequency.value = formant;
@@ -228,16 +225,8 @@ export default class Music {
         const depth = context.createGain();
         depth.gain.value = 8;
         vibrato.connect(depth);
-        for (const detune of [-7, 7]) {
-            const oscillator = context.createOscillator();
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.value = frequency;
-            oscillator.detune.value = detune;
-            depth.connect(oscillator.detune);
-            oscillator.connect(mix);
-            oscillator.start(time);
-            oscillator.stop(time + duration + 1);
-        }
+        const oscillator = this.voice(mix, 'sawtooth', frequency, 0, time, time + duration + 1);
+        depth.connect(oscillator.detune);
         vibrato.start(time);
         vibrato.stop(time + duration + 1);
     }
@@ -253,14 +242,7 @@ export default class Music {
         const gain = this.envelope(time, duration, volume, 0.008, 0.08);
         filter.connect(gain).connect(out);
 
-        for (const type of ['sawtooth', 'sine'] as OscillatorType[]) {
-            const oscillator = context.createOscillator();
-            oscillator.type = type;
-            oscillator.frequency.value = frequency;
-            oscillator.connect(filter);
-            oscillator.start(time);
-            oscillator.stop(time + duration + 0.1);
-        }
+        this.voice(filter, 'sawtooth', frequency, 0, time, time + duration + 0.1);
     }
 
     /** Plucked harp: a saw whose filter closes fast, long ring */
@@ -276,12 +258,7 @@ export default class Music {
         gain.gain.exponentialRampToValueAtTime(0.0001, time + 1.6);
         filter.connect(gain).connect(out);
 
-        const oscillator = context.createOscillator();
-        oscillator.type = 'sawtooth';
-        oscillator.frequency.value = frequency;
-        oscillator.connect(filter);
-        oscillator.start(time);
-        oscillator.stop(time + 1.7);
+        this.voice(filter, 'sawtooth', frequency, 0, time, time + 1.7);
     }
 
     /** Big drum: a falling sine for the body, a burst of dark noise for the skin */
@@ -341,6 +318,24 @@ export default class Music {
         source.stop(time + duration);
     }
 
+    /** One oscillator, counted while it sounds so the voice cap knows how busy the audio is */
+    private voice(out: AudioNode, type: OscillatorType, frequency: number, detune: number, start: number,
+                  stop: number): OscillatorNode {
+        const oscillator = this._bus.context.createOscillator();
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+        oscillator.detune.value = detune;
+        oscillator.connect(out);
+        oscillator.start(start);
+        oscillator.stop(stop);
+        this._voices++;
+        oscillator.onended = () => {
+            this._voices--;
+            oscillator.disconnect();
+        };
+        return oscillator;
+    }
+
     /** Attack, hold, release; the gain node is returned to connect the sound source into */
     private envelope(time: number, duration: number, volume: number, attack: number, release: number): GainNode {
         const gain = this._bus.context.createGain();
@@ -366,7 +361,7 @@ const MENU: TrackData = {
         const out = music.out;
         const inBar = step % STEPS_PER_BAR;
         const bar = stepSeconds * STEPS_PER_BAR;
-        if (inBar === 0) {
+        if (inBar === 0 && music.hasRoom) {
             chord.slice(1).forEach(midi => music.strings(out, hz(midi), time, bar, 0.035, 0.8));
             music.strings(out, hz(chord[0]), time, bar, 0.05, 0.6);
             music.choir(out, hz(chord[chord.length - 1] + 12), time, bar, 0.025);
@@ -399,7 +394,7 @@ const LEVEL: TrackData = {
         const out = music.out;
         const inBar = step % STEPS_PER_BAR;
         const root = chord[0];
-        if (inBar === 0)
+        if (inBar === 0 && music.hasRoom)
             chord.slice(1).forEach(midi => music.strings(out, hz(midi), time, stepSeconds * STEPS_PER_BAR, 0.03));
         // Galloping 8ths, the octave jump on the off-beats
         if (inBar % 2 === 0)
@@ -439,15 +434,16 @@ const BOSS: TrackData = {
         const root = chord[0];
         const bar = stepSeconds * STEPS_PER_BAR;
         if (inBar === 0) {
-            chord.slice(1).forEach(midi => music.choir(out, hz(midi - 12), time, bar, 0.03));
+            if (music.hasRoom)
+                chord.slice(1).forEach(midi => music.choir(out, hz(midi - 12), time, bar, 0.03));
             if (step % (STEPS_PER_BAR * 4) === 0)
                 music.crash(out, time, 0.12);
         }
         // Relentless 16ths, accented on the beat
         music.bass(out, hz(root + (inBar % 4 === 2 ? 12 : 0)), time, stepSeconds * 0.9, inBar % 4 === 0 ? 0.16 : 0.1);
         // Staccato strings in 8ths
-        if (inBar % 2 === 0)
-            chord.slice(1).forEach(midi => music.strings(out, hz(midi), time, stepSeconds * 0.8, 0.018, 0.01));
+        if (inBar % 2 === 0 && music.hasRoom)
+            chord.slice(1).forEach(midi => music.strings(out, hz(midi), time, stepSeconds * 0.8, 0.022, 0.01, 1));
         if ([0, 3, 6, 8, 11, 14].includes(inBar))
             music.taiko(out, time, inBar === 0 || inBar === 8 ? 1 : 0.6);
         if (inBar === 4 || inBar === 12)

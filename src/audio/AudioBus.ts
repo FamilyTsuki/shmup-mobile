@@ -11,7 +11,7 @@ import {Sound} from "phaser";
 export default class AudioBus {
     private static _instance: AudioBus | null = null;
 
-    private static readonly REVERB_SECONDS: number = 2.6;
+    private static readonly REVERB_SECONDS: number = 1.8;
     private static readonly REVERB_DECAY: number = 2.8;
 
     public readonly context: AudioContext;
@@ -60,9 +60,9 @@ export default class AudioBus {
         musicCompressor.connect(this._musicVolume);
         this.music = musicCompressor;
 
-        const impulse = this.createImpulse();
-        this.sfxReverb = this.createReverb(impulse, sfxCompressor, 0.5);
-        this.musicReverb = this.createReverb(impulse, musicCompressor, 0.9);
+        // A single convolution reverb, the costliest node, for the music; the effects get a light echo instead
+        this.musicReverb = this.createReverb(this.createImpulse(), musicCompressor, 0.9);
+        this.sfxReverb = this.createEcho(sfxCompressor);
 
         this._muted = sound.mute;
         sound.on(Sound.Events.GLOBAL_MUTE, (_manager: unknown, muted: boolean) => {
@@ -108,12 +108,27 @@ export default class AudioBus {
         return convolver;
     }
 
-    /** A concert hall: decaying stereo noise, darker as it fades */
+    /** Two quick fading repeats, darker each time: a sense of space for almost no processing */
+    private createEcho(output: AudioNode): AudioNode {
+        const input = this.context.createGain();
+        const delay = this.context.createDelay(1);
+        delay.delayTime.value = 0.09;
+        const tone = this.context.createBiquadFilter();
+        tone.type = 'lowpass';
+        tone.frequency.value = 2500;
+        const feedback = this.context.createGain();
+        feedback.gain.value = 0.35;
+        input.connect(delay).connect(tone).connect(output);
+        tone.connect(feedback).connect(delay);
+        return input;
+    }
+
+    /** A concert hall: decaying noise, darker as it fades. Mono: half the work of a stereo one */
     private createImpulse(): AudioBuffer {
         const rate = this.context.sampleRate;
         const length = Math.floor(rate * AudioBus.REVERB_SECONDS);
-        const impulse = this.context.createBuffer(2, length, rate);
-        for (let channel = 0; channel < 2; channel++) {
+        const impulse = this.context.createBuffer(1, length, rate);
+        for (let channel = 0; channel < 1; channel++) {
             const data = impulse.getChannelData(channel);
             let smooth = 0;
             for (let i = 0; i < length; i++) {
