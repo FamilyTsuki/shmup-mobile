@@ -52,6 +52,8 @@ export default class HomeScene extends Phaser.Scene {
 
         this.load.setPath('assets');
 
+        this.load.image('omega_flowey', 'Bosses/omega_flowey.png');
+
         // Press Start 2P, SIL Open Font License (Fonts/PressStart2P-OFL.txt)
         this.load.font(UiStyle.FONT, 'Fonts/PressStart2P-Regular.ttf');
         this.load.json(GameConstants.DataKeys.PLAYER_SHIPS, 'Data/playerShips.json');

@@ -8,6 +8,8 @@ import type {Polarity, PolarityRule} from "./PolarityData.ts";
  */
 export type PatternPolarity = PolarityRule | 'counter';
 
+export type BossOriginKey = 'mouth' | 'leftHand' | 'rightHand' | 'hands';
+
 export type BossPatternData =
     /** A fan of bullets; 360 deg with rotateDegPerShot makes a spiral */
     | {
@@ -20,6 +22,7 @@ export type BossPatternData =
         /** Turns the fan a bit more after each shot */
         rotateDegPerShot?: number;
         polarity?: PatternPolarity;
+        origin?: BossOriginKey;
     }
     /** Calls minions from enemies.json */
     | {
@@ -97,8 +100,16 @@ export type BossMovement = 'sway' | 'duelist';
 
 export type BossData = {
     name: string;
-    /** Ship shape drawn by TextureFactory */
+    /** Ship shape drawn by TextureFactory, or a preloaded Phaser image key */
     texture: string;
+    /** True when the texture is already drawn upright (no 90 deg rotation) */
+    upright?: boolean;
+    /** Normalized offsets (-0.5..0.5) relative to displayWidth/displayHeight for named attack origins */
+    origins?: {
+        mouth?: { x: number; y: number };
+        leftHand?: { x: number; y: number };
+        rightHand?: { x: number; y: number };
+    };
     scale: number;
     health: number;
     score: number;

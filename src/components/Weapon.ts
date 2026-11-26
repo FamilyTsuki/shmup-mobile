@@ -4,6 +4,12 @@ import Bullet from "../entities/Bullet.ts";
 import Entity from "../entities/Entity.ts";
 import IComponent from "./IComponent.ts";
 
+export type WeaponSpawnPoint = {
+    x: number;
+    y: number;
+    rotation?: number;
+};
+
 export default class Weapon implements IComponent {
     public enabled: boolean = true;
 
@@ -19,32 +25,25 @@ export default class Weapon implements IComponent {
         this._bulletData = bulletData;
     }
 
-    public shoot(source: Entity, angleOffset: number = 0) {
+    public shoot(source: Entity, angleOffset: number = 0, spawnPoint?: WeaponSpawnPoint) {
         if (!this.enabled)
             return;
 
-        this.spawnBullet(source, angleOffset);
+        this.spawnBullet(source, angleOffset, spawnPoint);
     }
 
-    protected spawnBullet(source: Entity, angleOffset: number) {
+    protected spawnBullet(source: Entity, angleOffset: number, spawnPoint?: WeaponSpawnPoint) {
         if (!this._bullets)
             return;
 
         const bullet: Bullet = this._bullets.get() as Bullet;
         if (bullet) {
-            // Get forward vector of the source entity
-            const sourceForward: Phaser.Math.Vector2 = new Phaser.Math.Vector2(1, 0).rotate(source.rotation + angleOffset);
+            const baseRotation = spawnPoint?.rotation ?? source.rotation;
+            const sourceForward: Phaser.Math.Vector2 = new Phaser.Math.Vector2(1, 0).rotate(baseRotation + angleOffset);
             const bulletVelocity: Phaser.Math.Vector2 = sourceForward.clone().scale(this._bulletData.speed);
-            bullet.enable(source.x + sourceForward.x * source.arcadeBody.radius, source.y + sourceForward.y * source.arcadeBody.radius,
-                bulletVelocity.x, bulletVelocity.y, this._bulletData);
-
-            // Maths way
-            // const forwardVectorX: number = Math.cos(source.rotation);
-            // const forwardVectorY: number = Math.sin(source.rotation);
-            // const bulletVelocityX: number = forwardVectorX * this._bulletData.speed;
-            // const bulletVelocityY: number = forwardVectorY * this._bulletData.speed;
-            // bullet.enable(source.x + forwardVectorX * source.arcadeBody.radius, source.y + forwardVectorY * source.arcadeBody.radius,
-            //     bulletVelocityX, bulletVelocityY, this._bulletData);
+            const spawnX = spawnPoint ? spawnPoint.x : source.x + sourceForward.x * source.arcadeBody.radius;
+            const spawnY = spawnPoint ? spawnPoint.y : source.y + sourceForward.y * source.arcadeBody.radius;
+            bullet.enable(spawnX, spawnY, bulletVelocity.x, bulletVelocity.y, this._bulletData);
         }
     }
 }

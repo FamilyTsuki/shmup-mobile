@@ -43,29 +43,34 @@
         ]
     },
     "orchid": {
-        "name": "Orchidée Vorace",
-        "texture": "orchid",
-        "scale": 1,
+        "name": "Omega Flowey",
+        "texture": "omega_flowey",
+        "upright": true,
+        "scale": 0.85,
         "health": 120,
         "score": 1500,
-        "entryY": 440,
+        "entryY": 420,
         "moveAmplitude": 200,
         "moveSpeed": 0.0006,
+        "origins": {
+            "mouth": {"x": 0, "y": 0.08},
+            "leftHand": {"x": -0.34, "y": 0.38},
+            "rightHand": {"x": 0.34, "y": 0.38}
+        },
         "intro": [
-            "Oh ! Bonjour petit vaisseau ! Tu as l'air tout perdu !",
-            "Moi c'est Orchidée. Je suis gentille. Trèèès gentille.",
-            "Tiens, des graines de l'amitié ! Attrape-les TOUTES !"
+            "Haha ! Tu pensais vraiment pouvoir m'éviter ?",
+            "Dans ce monde, c'est TIRER ou ÊTRE TIRÉ !"
         ],
-        "defeatLine": "Je voulais juste... un arrosoir...",
+        "defeatLine": "Impossible... mes pétales...",
         "phases": [
             {
                 "healthBelow": 1,
                 "moveSpeedFactor": 1,
                 "polarity": "plasma",
                 "patterns": [
-                    {"type": "fan", "delayMs": 1300, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
+                    {"type": "fan", "origin": "mouth", "delayMs": 1300, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
                         "bullet": {"width": 30, "height": 30, "speed": 300, "damage": 1}},
-                    {"type": "fan", "delayMs": 2100, "bulletCount": 9, "spreadAngleDeg": 140, "aimed": false,
+                    {"type": "fan", "origin": "hands", "delayMs": 2000, "bulletCount": 5, "spreadAngleDeg": 90, "aimed": false,
                         "bullet": {"width": 26, "height": 26, "speed": 370, "damage": 1}}
                 ]
             },
@@ -73,12 +78,14 @@
                 "healthBelow": 0.65,
                 "moveSpeedFactor": 1.2,
                 "polarity": "ion",
-                "say": "Pourquoi tu esquives mon AMITIÉ ?!",
+                "say": "Mes griffes vont te réduire en miettes !",
                 "patterns": [
                     {"type": "ring", "delayMs": 3200, "bulletCount": 16, "radius": 340, "holdMs": 900, "polarity": "counter",
                         "bullet": {"width": 30, "height": 30, "speed": 480, "damage": 1}},
-                    {"type": "fan", "delayMs": 1400, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
-                        "bullet": {"width": 30, "height": 30, "speed": 350, "damage": 1}}
+                    {"type": "fan", "origin": "mouth", "delayMs": 1400, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
+                        "bullet": {"width": 30, "height": 30, "speed": 350, "damage": 1}},
+                    {"type": "fan", "origin": "hands", "delayMs": 1800, "bulletCount": 4, "spreadAngleDeg": 60, "aimed": true,
+                        "bullet": {"width": 26, "height": 26, "speed": 380, "damage": 1}}
                 ]
             },
             {
@@ -86,12 +93,14 @@
                 "moveSpeedFactor": 1.6,
                 "polarity": "plasma",
                 "polarityCycleMs": 3500,
-                "say": "Bon. Fini les cadeaux. Place aux RACINES !",
+                "say": "FINI DE JOUER ! GOÛTE À MON CAUCHEMAR !",
                 "patterns": [
                     {"type": "curtain", "delayMs": 1900, "gapWidth": 260, "spacing": 80, "polarity": "counter",
                         "bullet": {"width": 30, "height": 30, "speed": 390, "damage": 1}},
-                    {"type": "ring", "delayMs": 4100, "bulletCount": 20, "radius": 360, "holdMs": 800, "polarity": "alternate",
-                        "bullet": {"width": 30, "height": 30, "speed": 530, "damage": 1}},
+                    {"type": "fan", "origin": "mouth", "delayMs": 1100, "bulletCount": 7, "spreadAngleDeg": 80, "aimed": true, "polarity": "alternate",
+                        "bullet": {"width": 30, "height": 30, "speed": 420, "damage": 1}},
+                    {"type": "fan", "origin": "hands", "delayMs": 1500, "bulletCount": 5, "spreadAngleDeg": 100, "aimed": false, "polarity": "counter",
+                        "bullet": {"width": 26, "height": 26, "speed": 400, "damage": 1}},
                     {"type": "summon", "delayMs": 7000, "enemy": "weaver", "count": 2}
                 ]
             }

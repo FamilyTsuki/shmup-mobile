@@ -1,7 +1,7 @@
 import {Physics} from 'phaser';
 import {BulletData} from "../gameData/BulletData.ts";
 import Entity from "../entities/Entity.ts";
-import Weapon from "./Weapon.ts";
+import Weapon, {WeaponSpawnPoint} from "./Weapon.ts";
 
 const FULL_CIRCLE_DEG: number = 360;
 
@@ -24,12 +24,12 @@ export default class SpreadWeapon extends Weapon {
     /**
      * @param angleOffset rotation in radians added to the source forward direction, to aim the whole fan
      */
-    public override shoot(source: Entity, angleOffset: number = 0) {
+    public override shoot(source: Entity, angleOffset: number = 0, spawnPoint?: WeaponSpawnPoint) {
         if (!this.enabled)
             return;
 
         if (this._bulletCount <= 1) {
-            super.shoot(source, angleOffset);
+            super.shoot(source, angleOffset, spawnPoint);
             return;
         }
 
@@ -40,7 +40,7 @@ export default class SpreadWeapon extends Weapon {
         const startDeg = isFullCircle ? 0 : -this._spreadAngleDeg / 2;
 
         for (let i = 0; i < this._bulletCount; i++) {
-            this.spawnBullet(source, angleOffset + Phaser.Math.DegToRad(startDeg + i * stepDeg));
+            this.spawnBullet(source, angleOffset + Phaser.Math.DegToRad(startDeg + i * stepDeg), spawnPoint);
         }
     }
 }

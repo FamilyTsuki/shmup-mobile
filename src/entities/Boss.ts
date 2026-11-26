@@ -4,7 +4,7 @@ import Bullet from "./Bullet.ts";
 import Health from "../components/Health.ts";
 import SpreadWeapon from "../components/SpreadWeapon.ts";
 import {BulletData, toBulletData} from "../gameData/BulletData.ts";
-import type {BossData, BossPatternData, BossPhaseData, PatternPolarity} from "../gameData/BossData.ts";
+import type {BossData, BossOriginKey, BossPatternData, BossPhaseData, PatternPolarity} from "../gameData/BossData.ts";
 import {oppositePolarity, Polarity, POLARITY_STYLES, resolvePolarity} from "../gameData/PolarityData.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 
@@ -44,6 +44,7 @@ export default class Boss extends Entity {
     private static readonly TRAP_SAFE_DISTANCE: number = 260;
 
     private readonly _data: BossData;
+    private readonly _hasCustomTexture: boolean;
     private readonly _bullets: Physics.Arcade.Group;
     /** A living player, picked again for each attack */
     private readonly _findTarget: () => BossTarget | null;
@@ -71,18 +72,23 @@ export default class Boss extends Entity {
 
     constructor(scene: Scene, data: BossData, bullets: Physics.Arcade.Group, findTarget: () => BossTarget | null,
                 difficulty: number) {
-        super(scene, scene.cameras.main.centerX, 0, TextureFactory.shipKey(data.texture, data.phases[0].polarity));
+        const hasCustomTexture = scene.textures.exists(data.texture);
+        super(scene, scene.cameras.main.centerX, 0,
+            hasCustomTexture ? data.texture : TextureFactory.shipKey(data.texture, data.phases[0].polarity));
 
         this._data = data;
+        this._hasCustomTexture = hasCustomTexture;
         this._bullets = bullets;
         this._findTarget = findTarget;
         this._polarity = data.phases[0].polarity;
 
         this.setScale(data.scale);
-        this.angle = 90;
+        this.angle = data.upright ? 0 : 90;
         this.y = -this.displayHeight / 2;
 
-        const radius = TextureFactory.bodyData(scene, this.texture.key).hitRadius;
+        const radius = hasCustomTexture
+            ? Math.min(this.width, this.height) * 0.36
+            : TextureFactory.bodyData(scene, this.texture.key).hitRadius;
         this.arcadeBody.setCircle(radius, this.width / 2 - radius, this.height / 2 - radius);
 
         const health = new Health(Math.round(data.health * difficulty), this);
@@ -129,7 +135,8 @@ export default class Boss extends Entity {
 
     private setPolarity(polarity: Polarity) {
         this._polarity = polarity;
-        this.setTexture(TextureFactory.shipKey(this._data.texture, polarity));
+        if (!this._hasCustomTexture)
+            this.setTexture(TextureFactory.shipKey(this._data.texture, polarity));
         this.scene.events.emit(Boss.POLARITY_CHANGED_EVENT, polarity);
 
         // A ring announces the flip
@@ -195,13 +202,20 @@ export default class Boss extends Entity {
                 const weapon = new SpreadWeapon(this._bullets, bulletData, pattern.bulletCount, pattern.spreadAngleDeg);
                 let rotationDeg = 0;
                 fire = () => {
-                    let angleOffset = Phaser.Math.DegToRad(rotationDeg);
+                    const baseRotation = this._data.upright ? Math.PI / 2 : this.rotation;
                     const target = this._findTarget();
-                    if (pattern.aimed && target)
-                        angleOffset += Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y) - this.rotation;
-
                     bulletData.polarity = this.resolvePatternPolarity(pattern.polarity, shots);
-                    weapon.shoot(this, angleOffset);
+
+                    for (const pt of this.resolveOrigins(pattern.origin)) {
+                        let angleOffset = Phaser.Math.DegToRad(rotationDeg);
+                        if (pattern.aimed && target)
+                            angleOffset += Phaser.Math.Angle.Between(pt.x, pt.y, target.x, target.y) - baseRotation;
+
+                        const spawnPoint = (pattern.origin || this._data.upright)
+                            ? {x: pt.x, y: pt.y, rotation: baseRotation}
+                            : undefined;
+                        weapon.shoot(this, angleOffset, spawnPoint);
+                    }
                     rotationDeg += pattern.rotateDegPerShot ?? 0;
                 };
                 break;
@@ -240,6 +254,21 @@ export default class Boss extends Entity {
                 shots++;
             }
         });
+    }
+
+    private resolveOrigins(origin?: BossOriginKey): { x: number; y: number }[] {
+        const origins = this._data.origins;
+        if (!origin || !origins)
+            return [{x: this.x, y: this.y}];
+
+        const toWorld = (off?: { x: number; y: number }) => off
+            ? {x: this.x + off.x * this.displayWidth, y: this.y + off.y * this.displayHeight}
+            : {x: this.x, y: this.y};
+
+        if (origin === 'hands')
+            return [toWorld(origins.leftHand), toWorld(origins.rightHand)];
+
+        return [toWorld(origins[origin])];
     }
 
     private spawnBullet(x: number, y: number, angle: number, data: BulletData): Bullet | null {
