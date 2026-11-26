@@ -1,5 +1,7 @@
 /** Gameplay values of coop.json: what only happens with two players or more */
 export type CoopData = {
+    /** Each screen draws the ships of the other players see-through, so its own ship stands out */
+    otherPlayersAlpha: number;
     /** A dead player becomes a ghost that keeps flying */
     ghost: {
         alpha: number;

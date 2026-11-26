@@ -6,6 +6,7 @@ import Backdrop from "../effects/Backdrop.ts";
 import Effects from "../effects/Effects.ts";
 import Sfx from "../audio/Sfx.ts";
 import LocalInput from "../input/LocalInput.ts";
+import type {CoopData} from "../gameData/CoopData.ts";
 import GyroSensor from "../input/GyroSensor.ts";
 import Net from "../net/Net.ts";
 import type {FxEvent, HostMessage, Snapshot, SnapPlayer, SyncObject} from "../net/Protocol.ts";
@@ -265,6 +266,9 @@ export default class RemoteGameScene extends Scene {
         const me = newer.players.find(player => player.id === Net.myId);
         // A ghost is still moved by its player
         const ownObjects = new Set(me?.alive || me?.ghost ? me.objects : []);
+        // The other players' ships are see-through, so this player's own ship stands out
+        const otherAlpha = (this.cache.json.get(GameConstants.DataKeys.COOP) as CoopData).otherPlayersAlpha;
+        const otherObjects = new Set(newer.players.filter(player => player.id !== Net.myId).flatMap(player => player.objects));
 
         const seen = new Set<number>();
         newer.objects.forEach((object, id) => {
@@ -283,7 +287,7 @@ export default class RemoteGameScene extends Scene {
             sprite.setPosition(x, Phaser.Math.Linear(previous[3], object[3], blend))
                 .setRotation(rotation)
                 .setScale(object[5] / 100, object[6] / 100)
-                .setAlpha(object[7] / 100)
+                .setAlpha(object[7] / 100 * (otherObjects.has(id) ? otherAlpha : 1))
                 .setDepth(object[10])
                 .setVisible(true);
             if (object[9])

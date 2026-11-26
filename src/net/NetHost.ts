@@ -101,7 +101,9 @@ export default class NetHost {
         const keys: [number, string][] = [];
         const objects: SyncObject[] = [];
 
-        for (const child of this._scene.children.list) {
+        // Layers (the other players' ships, see MainGameScene) hold objects to send too
+        const children = this._scene.children.list.flatMap(child => child instanceof GameObjects.Layer ? child.list : [child]);
+        for (const child of children) {
             // Backdrop tiles, texts and particles are drawn by the guests themselves
             if (!(child instanceof GameObjects.Image || child instanceof GameObjects.Sprite) || !child.visible || !child.active)
                 continue;

@@ -1,7 +1,8 @@
 {
+    "otherPlayersAlpha": 0.5,
     "ghost": {
         "alpha": 0.45,
-        "tint": "#b9c7ff",
+        "tint": "#8a8a96",
         "slowRadius": 170,
         "slowFactor": 0.35,
         "booRadius": 320,

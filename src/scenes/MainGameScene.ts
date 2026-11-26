@@ -165,9 +165,11 @@ export default class MainGameScene extends Scene {
         // "on": in coop a revived ship can die again
         players.forEach(ship => ship.getComponent(Health)?.on(Health.DEATH_EVENT, () => this.onPlayerDeath(ship), this));
         this._netHost?.setPlayers(players);
-        if (players.length > 1)
+        if (players.length > 1) {
+            this.dimOtherPlayers(players);
             players.forEach(ship => this._labels.set(ship, this.add.text(ship.x, ship.y + 70, `P${ship.index + 1}`,
                 UiStyle.text(30, POLARITY_STYLES.ion.lightCss)).setOrigin(0.5).setDepth(12)));
+        }
 
         this.entityManager.initEnemies();
         this.entityManager.initGroupCollisions();
@@ -244,6 +246,16 @@ export default class MainGameScene extends Scene {
         this.showBanner(this._endless ? `ETAPE ${this._endless.stage}`
             : `NIVEAU ${this._levelIndex + 1}\n${this._level.name}`);
         this.time.delayedCall(MainGameScene.VICTORY_DELAY_MS, () => this._waveManager.start());
+    }
+
+    /**
+     * The guests' ships are drawn see-through on this screen only: a layer dims them without touching
+     * their own alpha, which the guests receive in the snapshots.
+     */
+    private dimOtherPlayers(players: Player[]) {
+        const alpha = (this.cache.json.get(GameConstants.DataKeys.COOP) as CoopData).otherPlayersAlpha;
+        const layer = this.add.layer().setAlpha(alpha).setDepth(players[0].depth);
+        players.slice(1).forEach(ship => layer.add([ship, ...ship.followers]));
     }
 
     private spawnBoss() {
