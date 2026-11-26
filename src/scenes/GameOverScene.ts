@@ -74,7 +74,9 @@ export default class GameOverScene extends Scene {
             const waiting = this.add.text(centerX, 1250, "En attente de l'hôte...", UiStyle.body(44, '#ffffff')).setOrigin(0.5);
             this.tweens.add({targets: waiting, alpha: 0.3, duration: 600, yoyo: true, repeat: -1});
             this.time.delayedCall(GameOverScene.INPUT_DELAY_MS, () => {
-                new Button(this, centerX, 1500, 'QUITTER LE SALON', () => {
+                // The shop goes back to the room; the host's next start pulls this player into the game from there
+                new Button(this, centerX, 1400, 'BOUTIQUE COOP', () => this.scene.start(GameConstants.SceneKeys.SHOP));
+                new Button(this, centerX, 1580, 'QUITTER LE SALON', () => {
                     Net.leave();
                     this.scene.start(GameConstants.SceneKeys.HOME);
                 });

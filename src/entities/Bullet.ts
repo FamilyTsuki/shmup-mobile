@@ -24,6 +24,12 @@ export default class Bullet extends Phaser.GameObjects.Image {
     private _returnAtMs: number = -1;
     private _returnTarget: Point | null = null;
     private _returning: boolean = false;
+    private _owner: number = -1;
+
+    /** Coop: index of the ship that fired it, -1 for enemy bullets */
+    public get owner(): number {
+        return this._owner;
+    }
 
     public get damage(): number {
         return this._damage;
@@ -55,6 +61,8 @@ export default class Bullet extends Phaser.GameObjects.Image {
         this.scene.physics.world.add(this._arcadeBody);
         this.setActive(true);
         this.setVisible(true);
+        this.setAlpha(data.alpha ?? 1);
+        this._owner = data.owner ?? -1;
 
         // Arcade bodies can't rotate: a circle on the core fits any direction
         this._arcadeBody.setCircle(body.hitRadius, this.width / 2 - body.hitRadius, this.height / 2 - body.hitRadius);

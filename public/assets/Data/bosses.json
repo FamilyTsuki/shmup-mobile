@@ -21,9 +21,9 @@
                 "polarity": "plasma",
                 "patterns": [
                     {"type": "fan", "delayMs": 1600, "bulletCount": 7, "spreadAngleDeg": 70, "aimed": true,
-                        "bullet": {"width": 24, "height": 24, "speed": 380, "damage": 1}},
+                        "bullet": {"width": 35, "height": 35, "speed": 440, "damage": 1}},
                     {"type": "curtain", "delayMs": 3400, "gapWidth": 300, "spacing": 90, "polarity": "alternate",
-                        "bullet": {"width": 21, "height": 21, "speed": 300, "damage": 1}}
+                        "bullet": {"width": 30, "height": 30, "speed": 350, "damage": 1}}
                 ]
             },
             {
@@ -34,9 +34,9 @@
                 "patterns": [
                     {"type": "fan", "delayMs": 260, "bulletCount": 4, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 13,
                         "polarity": "alternate",
-                        "bullet": {"width": 21, "height": 21, "speed": 300, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 350, "damage": 1}},
                     {"type": "fan", "delayMs": 1500, "bulletCount": 1, "spreadAngleDeg": 0, "aimed": true, "polarity": "counter",
-                        "bullet": {"width": 39, "height": 17, "speed": 700, "damage": 1}},
+                        "bullet": {"width": 57, "height": 25, "speed": 800, "damage": 1}},
                     {"type": "summon", "delayMs": 5000, "enemy": "kamikaze", "count": 2}
                 ]
             }
@@ -64,9 +64,9 @@
                 "polarity": "plasma",
                 "patterns": [
                     {"type": "fan", "delayMs": 1300, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
-                        "bullet": {"width": 21, "height": 21, "speed": 260, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 300, "damage": 1}},
                     {"type": "fan", "delayMs": 2100, "bulletCount": 9, "spreadAngleDeg": 140, "aimed": false,
-                        "bullet": {"width": 18, "height": 18, "speed": 320, "damage": 1}}
+                        "bullet": {"width": 26, "height": 26, "speed": 370, "damage": 1}}
                 ]
             },
             {
@@ -76,9 +76,9 @@
                 "say": "Pourquoi tu esquives mon AMITIÉ ?!",
                 "patterns": [
                     {"type": "ring", "delayMs": 3200, "bulletCount": 16, "radius": 340, "holdMs": 900, "polarity": "counter",
-                        "bullet": {"width": 21, "height": 21, "speed": 420, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 480, "damage": 1}},
                     {"type": "fan", "delayMs": 1400, "bulletCount": 5, "spreadAngleDeg": 50, "aimed": true, "polarity": "counter",
-                        "bullet": {"width": 21, "height": 21, "speed": 300, "damage": 1}}
+                        "bullet": {"width": 30, "height": 30, "speed": 350, "damage": 1}}
                 ]
             },
             {
@@ -89,9 +89,9 @@
                 "say": "Bon. Fini les cadeaux. Place aux RACINES !",
                 "patterns": [
                     {"type": "curtain", "delayMs": 1900, "gapWidth": 260, "spacing": 80, "polarity": "counter",
-                        "bullet": {"width": 21, "height": 21, "speed": 340, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 390, "damage": 1}},
                     {"type": "ring", "delayMs": 4100, "bulletCount": 20, "radius": 360, "holdMs": 800, "polarity": "alternate",
-                        "bullet": {"width": 21, "height": 21, "speed": 460, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 530, "damage": 1}},
                     {"type": "summon", "delayMs": 7000, "enemy": "weaver", "count": 2}
                 ]
             }
@@ -119,7 +119,7 @@
                 "polarity": "ion",
                 "patterns": [
                     {"type": "fan", "delayMs": 1300, "bulletCount": 9, "spreadAngleDeg": 90, "aimed": true,
-                        "bullet": {"width": 21, "height": 21, "speed": 400, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 460, "damage": 1}},
                     {"type": "summon", "delayMs": 6000, "enemy": "scout", "count": 3}
                 ]
             },
@@ -130,9 +130,9 @@
                 "say": "Tirs de barrage ! Tous les canons !",
                 "patterns": [
                     {"type": "fan", "delayMs": 200, "bulletCount": 3, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 17,
-                        "bullet": {"width": 18, "height": 18, "speed": 320, "damage": 1}},
+                        "bullet": {"width": 26, "height": 26, "speed": 370, "damage": 1}},
                     {"type": "curtain", "delayMs": 3000, "gapWidth": 280, "spacing": 90, "polarity": "counter",
-                        "bullet": {"width": 21, "height": 21, "speed": 330, "damage": 1}}
+                        "bullet": {"width": 30, "height": 30, "speed": 380, "damage": 1}}
                 ]
             },
             {
@@ -144,9 +144,9 @@
                 "patterns": [
                     {"type": "fan", "delayMs": 900, "bulletCount": 18, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 10,
                         "polarity": "alternate",
-                        "bullet": {"width": 21, "height": 21, "speed": 340, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 390, "damage": 1}},
                     {"type": "fan", "delayMs": 1600, "bulletCount": 3, "spreadAngleDeg": 20, "aimed": true, "polarity": "counter",
-                        "bullet": {"width": 42, "height": 17, "speed": 700, "damage": 1}},
+                        "bullet": {"width": 61, "height": 25, "speed": 800, "damage": 1}},
                     {"type": "summon", "delayMs": 4000, "enemy": "kamikaze", "count": 3}
                 ]
             }
@@ -177,7 +177,7 @@
                 "patterns": [
                     {"type": "lunge", "delayMs": 3600, "warnMs": 600, "speed": 2.4},
                     {"type": "fan", "delayMs": 1100, "bulletCount": 3, "spreadAngleDeg": 24, "aimed": true,
-                        "bullet": {"width": 42, "height": 17, "speed": 640, "damage": 1}}
+                        "bullet": {"width": 61, "height": 25, "speed": 740, "damage": 1}}
                 ]
             },
             {
@@ -187,9 +187,9 @@
                 "say": "Pas mal. Mais ma lame revient TOUJOURS.",
                 "patterns": [
                     {"type": "boomerang", "delayMs": 2200, "returnAfterMs": 750, "polarity": "counter",
-                        "bullet": {"width": 63, "height": 26, "speed": 760, "damage": 1}},
+                        "bullet": {"width": 91, "height": 38, "speed": 870, "damage": 1}},
                     {"type": "traps", "delayMs": 5000, "count": 6, "lifetimeMs": 4000, "polarity": "alternate",
-                        "bullet": {"width": 24, "height": 24, "speed": 0, "damage": 1}},
+                        "bullet": {"width": 35, "height": 35, "speed": 0, "damage": 1}},
                     {"type": "lunge", "delayMs": 4200, "warnMs": 500, "speed": 2.8}
                 ]
             },
@@ -202,9 +202,9 @@
                 "patterns": [
                     {"type": "lunge", "delayMs": 2600, "warnMs": 420, "speed": 3.2},
                     {"type": "boomerang", "delayMs": 1700, "returnAfterMs": 650, "polarity": "counter",
-                        "bullet": {"width": 63, "height": 26, "speed": 820, "damage": 1}},
+                        "bullet": {"width": 91, "height": 38, "speed": 940, "damage": 1}},
                     {"type": "curtain", "delayMs": 3800, "gapWidth": 260, "spacing": 85, "polarity": "alternate",
-                        "bullet": {"width": 21, "height": 21, "speed": 360, "damage": 1}}
+                        "bullet": {"width": 30, "height": 30, "speed": 410, "damage": 1}}
                 ]
             }
         ]
@@ -231,9 +231,9 @@
                 "polarity": "plasma",
                 "patterns": [
                     {"type": "fan", "delayMs": 1100, "bulletCount": 11, "spreadAngleDeg": 120, "aimed": false, "rotateDegPerShot": 9,
-                        "bullet": {"width": 21, "height": 21, "speed": 380, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 440, "damage": 1}},
                     {"type": "fan", "delayMs": 1700, "bulletCount": 3, "spreadAngleDeg": 16, "aimed": true, "polarity": "counter",
-                        "bullet": {"width": 39, "height": 17, "speed": 650, "damage": 1}},
+                        "bullet": {"width": 57, "height": 25, "speed": 750, "damage": 1}},
                     {"type": "summon", "delayMs": 5500, "enemy": "turret", "count": 2}
                 ]
             },
@@ -245,9 +245,9 @@
                 "say": "Bon, je m'en occupe moi-même. Comme toujours.",
                 "patterns": [
                     {"type": "fan", "delayMs": 180, "bulletCount": 5, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": 11,
-                        "bullet": {"width": 18, "height": 18, "speed": 300, "damage": 1}},
+                        "bullet": {"width": 26, "height": 26, "speed": 350, "damage": 1}},
                     {"type": "ring", "delayMs": 3600, "bulletCount": 18, "radius": 340, "holdMs": 850, "polarity": "counter",
-                        "bullet": {"width": 21, "height": 21, "speed": 440, "damage": 1}}
+                        "bullet": {"width": 30, "height": 30, "speed": 510, "damage": 1}}
                 ]
             },
             {
@@ -259,9 +259,9 @@
                 "patterns": [
                     {"type": "fan", "delayMs": 140, "bulletCount": 6, "spreadAngleDeg": 360, "aimed": false, "rotateDegPerShot": -8,
                         "polarity": "alternate",
-                        "bullet": {"width": 18, "height": 18, "speed": 320, "damage": 1}},
+                        "bullet": {"width": 26, "height": 26, "speed": 370, "damage": 1}},
                     {"type": "curtain", "delayMs": 3200, "gapWidth": 260, "spacing": 85, "polarity": "counter",
-                        "bullet": {"width": 21, "height": 21, "speed": 360, "damage": 1}},
+                        "bullet": {"width": 30, "height": 30, "speed": 410, "damage": 1}},
                     {"type": "summon", "delayMs": 6000, "enemy": "kamikaze", "count": 4}
                 ]
             }

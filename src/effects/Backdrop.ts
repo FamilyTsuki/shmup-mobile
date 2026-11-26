@@ -9,6 +9,8 @@ export default class Backdrop {
     private static readonly NEBULA_SPEED: number = 0.03;
     private static readonly FAR_SPEED: number = 0.08;
     private static readonly NEAR_SPEED: number = 0.25;
+    private static readonly IN_GAME_FAR_ALPHA: number = 0.45;
+    private static readonly IN_GAME_NEAR_ALPHA: number = 0.6;
 
     private readonly _nebula: GameObjects.TileSprite;
     private readonly _far: GameObjects.TileSprite;
@@ -25,6 +27,12 @@ export default class Backdrop {
             .setOrigin(0).setTileScale(3);
         this._near = scene.add.tileSprite(0, 0, width, height, TextureFactory.STARS_NEAR_KEY)
             .setOrigin(0).setTileScale(3);
+
+        // In game the stars are dimmed so the enemy bullets stand out
+        if (speedFactor === 1) {
+            this._far.setAlpha(Backdrop.IN_GAME_FAR_ALPHA);
+            this._near.setAlpha(Backdrop.IN_GAME_NEAR_ALPHA);
+        }
 
         // Menu scenes have no update loop of their own to call
         if (speedFactor !== 1) {

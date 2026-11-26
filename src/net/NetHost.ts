@@ -4,6 +4,7 @@ import NetworkInput from "./NetworkInput.ts";
 import Timeline from "./Timeline.ts";
 import type {FxEvent, GuestMessage, HudState, SnapPlayer, Snapshot, SyncObject} from "./Protocol.ts";
 import type Player from "../entities/Player.ts";
+import Bullet from "../entities/Bullet.ts";
 import RegistryConstants from "../RegistryConstants.ts";
 import Health from "../components/Health.ts";
 import type {Polarity} from "../gameData/PolarityData.ts";
@@ -116,10 +117,13 @@ export default class NetHost {
                 keys.push([textureIndex, key]);
             }
 
+            // A player's shot is dimmed on the host only: each guest dims the shots that are not its own
+            const owner = child instanceof Bullet ? child.owner : -1;
             objects.push([
                 this.idOf(child), textureIndex, Math.round(child.x), Math.round(child.y),
                 Math.round(child.rotation * 100), Math.round(child.scaleX * 100), Math.round(child.scaleY * 100),
-                Math.round(child.alpha * 100), child.tintTopLeft, child.tintFill ? 1 : 0, child.depth,
+                owner >= 0 ? 100 : Math.round(child.alpha * 100), child.tintTopLeft, child.tintFill ? 1 : 0, child.depth,
+                owner,
             ]);
         }
 

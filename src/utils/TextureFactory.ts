@@ -301,15 +301,16 @@ export default class TextureFactory {
         const orb = ion
             ? ['..mmm..', '.mlllm.', 'mll.llm', 'ml...lm', 'mll.llm', '.mlllm.', '..mmm..']
             : ['..mmm..', '.mlllm.', 'mllwllm', 'mlwwwlm', 'mllwllm', '.mlllm.', '..mmm..'];
-        // The outline adds one art pixel on each side: core = 7 art pixels of 3 screen pixels
+        // The outline adds one art pixel on each side: core = 7 art pixels of 3 screen pixels.
+        // Enemy bullets are drawn big to stand out from the stars: the hitbox stays a bit smaller than the drawing
         TextureFactory.createGrid(scene, TextureFactory.bulletKey('orb', polarity), TextureFactory.outlined(orb),
-            palette, 3, 'none', {hitRadius: 8, coreSize: 21});
+            palette, 3, 'none', {hitRadius: 6.5, coreSize: 21});
 
         const needle = ion
             ? ['.l.', 'mlm', 'm.m', 'm.m', 'm.m', 'm.m', 'mlm', '.m.']
             : ['.w.', 'mwm', 'mlm', 'mwm', 'mlm', 'mwm', 'mlm', '.m.'];
         TextureFactory.createGrid(scene, TextureFactory.bulletKey('needle', polarity), TextureFactory.outlined(needle),
-            palette, 3, 'cw', {hitRadius: 5, coreSize: 9});
+            palette, 3, 'cw', {hitRadius: 4, coreSize: 9});
 
         const bolt = ['.w.', 'lwl', 'lwl', 'mlm', 'mlm', 'mmm', '.d.'];
         TextureFactory.createGrid(scene, TextureFactory.bulletKey('bolt', polarity), TextureFactory.outlined(bolt),

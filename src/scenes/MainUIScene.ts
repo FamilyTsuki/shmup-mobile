@@ -12,6 +12,8 @@ export default class MainUIScene extends Scene {
     private static readonly GAUGE_RADIUS: number = 78;
     private static readonly GAUGE_WIDTH: number = 16;
     private static readonly MAX_LIFE_ICONS: number = 8;
+    /** Center of the dialogue box: right under the boss bar */
+    private static readonly DIALOGUE_Y: number = 500;
 
     private _lifeIcons: GameObjects.Image[] = [];
     private _scoreText: GameObjects.Text;
@@ -223,16 +225,17 @@ export default class MainUIScene extends Scene {
     }
 
     private createDialogueBox() {
-        const {width, height} = this.scale;
+        const {width} = this.scale;
         const boxWidth = width - 100;
         const boxHeight = 250;
-        const shadow = this.add.rectangle(0, 10, boxWidth, boxHeight, 0x0b0915);
-        const panel = this.add.rectangle(0, 0, boxWidth, boxHeight, UiStyle.PANEL).setStrokeStyle(6, 0xf4f1e8);
+        const shadow = this.add.rectangle(0, 10, boxWidth, boxHeight, 0x0b0915, 0.85);
+        const panel = this.add.rectangle(0, 0, boxWidth, boxHeight, UiStyle.PANEL, 0.85).setStrokeStyle(6, 0xf4f1e8);
         this._dialogueName = this.add.text(-boxWidth / 2 + 30, -boxHeight / 2 - 18, '', UiStyle.text(40, '#f6d55c'))
             .setOrigin(0, 0.5);
         this._dialogueText = this.add.text(-boxWidth / 2 + 36, -boxHeight / 2 + 40, '',
             {...UiStyle.body(46, UiStyle.TEXT_CSS), wordWrap: {width: boxWidth - 72}, lineSpacing: 14});
-        this._dialogue = this.add.container(width / 2, height * 0.62,
+        // Under the boss bar, far from the ships at the bottom of the screen
+        this._dialogue = this.add.container(width / 2, MainUIScene.DIALOGUE_Y,
             [shadow, panel, this._dialogueName, this._dialogueText]).setVisible(false);
     }
 

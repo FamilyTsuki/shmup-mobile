@@ -66,6 +66,11 @@ export default class LobbyScene extends Scene {
             this._code = data.join;
             this.joinRoom();
         }
+        // Back from the shop: the ship or the upgrades may have changed, and players may have joined meanwhile
+        if (Net.role === 'guest')
+            this.sendHello();
+        else if (Net.role === 'host')
+            this.announcePlayers();
         this.show(Net.role ? 'room' : 'menu');
     }
 
@@ -165,6 +170,8 @@ export default class LobbyScene extends Scene {
             this.tweens.add({targets: waiting, alpha: 0.3, duration: 600, yoyo: true, repeat: -1});
         }
 
+        // Coop has its own credits and upgrades, spent here
+        this.track(new Button(this, centerX, 1580, 'BOUTIQUE COOP', () => this.scene.start(GameConstants.SceneKeys.SHOP)));
         this.track(new Button(this, centerX, 1780, 'QUITTER LE SALON', () => {
             Net.leave();
             this.show('menu');
@@ -206,16 +213,19 @@ export default class LobbyScene extends Scene {
 
     private onRoom() {
         this._status.setText('');
-        if (Net.role === 'guest') {
-            // Tell the host which ship and upgrades this player brings
-            const upgrades = this.cache.json.get(GameConstants.DataKeys.UPGRADES) as UpgradesData;
-            const shipId = Progress.getSelectedShip(this.saveManager);
-            const ship = (this.cache.json.get(GameConstants.DataKeys.PLAYER_SHIPS) as PlayerShipsData)[shipId];
-            const hello: GuestMessage = {k: 'hello', ship: shipId,
-                stats: computePlayerStats(upgrades, Progress.getUpgradeLevels(this.saveManager), ship?.bonus)};
-            Net.sendToHost(hello);
-        }
+        if (Net.role === 'guest')
+            this.sendHello();
         this.show('room');
+    }
+
+    /** Guest: tells the host which ship and upgrades (of the coop progression) this player brings */
+    private sendHello() {
+        const upgrades = this.cache.json.get(GameConstants.DataKeys.UPGRADES) as UpgradesData;
+        const shipId = Progress.getSelectedShip(this.saveManager);
+        const ship = (this.cache.json.get(GameConstants.DataKeys.PLAYER_SHIPS) as PlayerShipsData)[shipId];
+        const hello: GuestMessage = {k: 'hello', ship: shipId,
+            stats: computePlayerStats(upgrades, Progress.getUpgradeLevels(this.saveManager), ship?.bonus)};
+        Net.sendToHost(hello);
     }
 
     private onPlayers() {

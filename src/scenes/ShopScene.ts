@@ -40,12 +40,16 @@ export default class ShopScene extends Scene {
     create(data?: ShopSceneData) {
         this._content = [];
         new Backdrop(this, 0.5);
-        this.add.text(this.scale.width / 2, 130, 'BOUTIQUE', UiStyle.text(100)).setOrigin(0.5);
+        this.add.text(this.scale.width / 2, 130, Progress.isCoop ? 'BOUTIQUE COOP' : 'BOUTIQUE', UiStyle.text(100))
+            .setOrigin(0.5);
 
         const endless = data?.endless;
         if (endless)
             new Button(this, this.scale.width / 2, 1845, `ETAPE ${endless.stage} >`,
                 () => launchGame(this, this.saveManager, {endless}));
+        else if (Progress.isCoop)
+            // Still in the coop room: back to it
+            new Button(this, this.scale.width / 2, 1845, 'SALON', () => this.scene.start(GameConstants.SceneKeys.LOBBY, {}));
         else
             new Button(this, this.scale.width / 2, 1845, 'RETOUR', () => this.scene.start(GameConstants.SceneKeys.HOME));
 

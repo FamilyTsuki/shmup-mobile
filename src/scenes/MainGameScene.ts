@@ -255,7 +255,11 @@ export default class MainGameScene extends Scene {
     private dimOtherPlayers(players: Player[]) {
         const alpha = (this.cache.json.get(GameConstants.DataKeys.COOP) as CoopData).otherPlayersAlpha;
         const layer = this.add.layer().setAlpha(alpha).setDepth(players[0].depth);
-        players.slice(1).forEach(ship => layer.add([ship, ...ship.followers]));
+        players.slice(1).forEach(ship => {
+            layer.add([ship, ...ship.followers]);
+            // Their shots too; NetHost sends them undimmed with their owner, each guest dims the others' ones
+            ship.setShotAlpha(alpha);
+        });
     }
 
     private spawnBoss() {

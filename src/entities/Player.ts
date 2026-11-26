@@ -121,6 +121,7 @@ export default class Player extends Entity {
         this._powerUps = powerUps;
         this._polarityData = polarityData;
         this._bulletData.damage = stats.damage;
+        this._bulletData.owner = this.index;
 
         this.addComponent(new Health(stats.maxHealth, this));
         this.addComponent(new Movement());
@@ -243,6 +244,11 @@ export default class Player extends Entity {
 
     public setCharge(charge: number) {
         this._charge = Phaser.Math.Clamp(charge, 0, Player.MAX_CHARGE);
+    }
+
+    /** Coop: the shots of this ship are drawn see-through on this screen */
+    public setShotAlpha(alpha: number) {
+        this._bulletData.alpha = alpha;
     }
 
     /** From the HUD polarity button: applied on the next update */

@@ -294,7 +294,7 @@ export default class RemoteGameScene extends Scene {
             sprite.setPosition(x, y)
                 .setRotation(rotation)
                 .setScale(object[5] / 100, object[6] / 100)
-                .setAlpha(object[7] / 100 * (otherObjects.has(id) ? otherAlpha : 1))
+                .setAlpha(object[7] / 100 * (otherObjects.has(id) || this.isOthersShot(object, me) ? otherAlpha : 1))
                 .setDepth(object[10])
                 .setVisible(true);
             if (object[9])
@@ -310,6 +310,12 @@ export default class RemoteGameScene extends Scene {
         });
 
         this.drawLabels(newer.players);
+    }
+
+    /** A shot fired by another player than this one */
+    private isOthersShot(object: SyncObject, me: SnapPlayer | undefined): boolean {
+        const owner = object[11];
+        return owner !== undefined && owner >= 0 && owner !== me?.index;
     }
 
     private spriteFor(object: SyncObject): GameObjects.Image | null {

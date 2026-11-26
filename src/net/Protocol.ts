@@ -40,10 +40,11 @@ export type NetInput = {
 };
 
 /**
- * One drawn object: [id, texture, x, y, rotation x100, scaleX x100, scaleY x100, alpha x100, tint, white flash, depth].
+ * One drawn object: [id, texture, x, y, rotation x100, scaleX x100, scaleY x100, alpha x100, tint, white flash, depth,
+ * shooter index (P1 = 0) of a player shot or -1].
  * Generic on purpose: guests do not need to know what an enemy or a bullet is to draw it.
  */
-export type SyncObject = [number, number, number, number, number, number, number, number, number, number, number];
+export type SyncObject = [number, number, number, number, number, number, number, number, number, number, number, number];
 
 export type SnapPlayer = {
     /** Room id of the player who controls the ship */

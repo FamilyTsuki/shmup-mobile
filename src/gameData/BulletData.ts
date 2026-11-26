@@ -9,6 +9,10 @@ export type BulletData = {
     damage: number;
     polarity: Polarity;
     shape: BulletShape;
+    /** Coop: index of the ship that fired (0 for P1), absent for enemy bullets */
+    owner?: number;
+    /** Drawing alpha: the other players' shots are see-through, so each player tells its own apart */
+    alpha?: number;
 }
 
 /** As written in the JSON files: the polarity comes from the shooter, the shape from the size */
