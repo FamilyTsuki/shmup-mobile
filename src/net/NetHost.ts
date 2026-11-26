@@ -5,6 +5,7 @@ import Timeline from "./Timeline.ts";
 import type {FxEvent, GuestMessage, HudState, SnapPlayer, Snapshot, SyncObject} from "./Protocol.ts";
 import type Player from "../entities/Player.ts";
 import Bullet from "../entities/Bullet.ts";
+import Backdrop from "../effects/Backdrop.ts";
 import RegistryConstants from "../RegistryConstants.ts";
 import Health from "../components/Health.ts";
 import type {Polarity} from "../gameData/PolarityData.ts";
@@ -106,7 +107,8 @@ export default class NetHost {
         const children = this._scene.children.list.flatMap(child => child instanceof GameObjects.Layer ? child.list : [child]);
         for (const child of children) {
             // Backdrop tiles, texts and particles are drawn by the guests themselves
-            if (!(child instanceof GameObjects.Image || child instanceof GameObjects.Sprite) || !child.visible || !child.active)
+            if (!(child instanceof GameObjects.Image || child instanceof GameObjects.Sprite) || !child.visible || !child.active
+                || child.name === Backdrop.STAR_NAME)
                 continue;
 
             const key = child.texture.key;

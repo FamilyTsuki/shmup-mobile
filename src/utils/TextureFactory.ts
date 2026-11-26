@@ -56,8 +56,10 @@ export default class TextureFactory {
     public static readonly SHIELD_KEY: string = 'shield';
     public static readonly LIFE_KEY: string = 'life';
     public static readonly NEBULA_KEY: string = 'nebula';
-    public static readonly STARS_FAR_KEY: string = 'starsFar';
-    public static readonly STARS_NEAR_KEY: string = 'starsNear';
+    /** One small star each: drawn as separate sprites, much cheaper than full screen star layers */
+    public static readonly STAR_FAR_KEYS: readonly string[] = ['starFar0', 'starFar1', 'starFar2'];
+    public static readonly STAR_NEAR_KEY: string = 'starNear';
+    public static readonly STAR_BRIGHT_KEY: string = 'starBright';
 
     /** Screen pixels per art pixel of the menu icons */
     private static readonly ICON_CELL: number = 7;
@@ -667,31 +669,14 @@ export default class TextureFactory {
             }
         });
 
-        const stars = ['#5d566e', '#7a7290', '#9a93ab'];
-        TextureFactory.createCanvas(scene, TextureFactory.STARS_FAR_KEY, size, size, (context) => {
-            for (let i = 0; i < 40; i++) {
-                context.fillStyle = stars[Math.floor(random() * stars.length)];
-                context.fillRect(Math.floor(random() * size / 2) * 2, Math.floor(random() * size / 2) * 2, 2, 2);
-            }
-        });
-
-        TextureFactory.createCanvas(scene, TextureFactory.STARS_NEAR_KEY, size, size, (context) => {
-            for (let i = 0; i < 7; i++) {
-                const x = 4 + Math.floor(random() * (size - 12) / 2) * 2;
-                const y = 4 + Math.floor(random() * (size - 12) / 2) * 2;
-                const bright = random() < 0.4;
-                context.fillStyle = bright ? '#f4f1e8' : '#b9b2c9';
-                context.fillRect(x, y, 2, 2);
-                // A small cross on the brighter ones
-                if (bright) {
-                    context.fillStyle = '#7a7290';
-                    context.fillRect(x - 2, y, 2, 2);
-                    context.fillRect(x + 2, y, 2, 2);
-                    context.fillRect(x, y - 2, 2, 2);
-                    context.fillRect(x, y + 2, 2, 2);
-                }
-            }
-        });
+        // Stars: 2x2 texture pixels, drawn 3 times bigger like the rest of the backdrop
+        const farColors = ['#5d566e', '#7a7290', '#9a93ab'];
+        TextureFactory.STAR_FAR_KEYS.forEach((key, index) =>
+            TextureFactory.createGrid(scene, key, ['s'], {s: farColors[index]}, 6, 'none'));
+        TextureFactory.createGrid(scene, TextureFactory.STAR_NEAR_KEY, ['s'], {s: '#b9b2c9'}, 6, 'none');
+        // The brighter ones have a small cross
+        TextureFactory.createGrid(scene, TextureFactory.STAR_BRIGHT_KEY, ['.g.', 'gwg', '.g.'], {g: '#7a7290', w: '#f4f1e8'},
+            6, 'none');
     }
 
     // ------------------------------------------------------------------ bosses

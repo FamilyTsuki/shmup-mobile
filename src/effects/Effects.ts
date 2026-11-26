@@ -12,6 +12,8 @@ export default class Effects {
     private readonly _scene: Scene;
     private readonly _emitter: GameObjects.Particles.ParticleEmitter;
     private readonly _sparks: GameObjects.Particles.ParticleEmitter;
+    /** Finished rings, reused: absorbing a spiral of bullets makes dozens per second */
+    private readonly _freeRings: GameObjects.Image[] = [];
 
     constructor(scene: Scene) {
         this._scene = scene;
@@ -63,15 +65,18 @@ export default class Effects {
      * An expanding ring, from a point to radius px.
      */
     public ring(x: number, y: number, color: number, radius: number, durationMs: number) {
-        const ring = this._scene.add.image(x, y, TextureFactory.RING_KEY)
-            .setTint(color).setDepth(49).setScale(0.05);
+        const ring = (this._freeRings.pop() ?? this._scene.add.image(0, 0, TextureFactory.RING_KEY).setDepth(49))
+            .setPosition(x, y).setTint(color).setScale(0.05).setAlpha(1).setVisible(true);
         this._scene.tweens.add({
             targets: ring,
             scale: radius / TextureFactory.RING_RADIUS,
             alpha: {from: 1, to: 0},
             duration: durationMs,
             ease: 'Cubic.easeOut',
-            onComplete: () => ring.destroy()
+            onComplete: () => {
+                ring.setVisible(false);
+                this._freeRings.push(ring);
+            }
         });
     }
 
