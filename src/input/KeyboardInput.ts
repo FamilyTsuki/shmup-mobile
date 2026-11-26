@@ -21,11 +21,11 @@ export default class KeyboardInput implements IInputSource {
             state.rotate = axis;
         else
             state.moveX = axis;
+        state.moveY = (this._keys.down.isDown ? 1 : 0) - (this._keys.up.isDown ? 1 : 0);
 
         state.fire = this._keys.space.isDown;
-        // X or UP switches polarity
-        state.switchPolarity = Phaser.Input.Keyboard.JustDown(this._keys.up)
-            || (this._switchKey !== undefined && Phaser.Input.Keyboard.JustDown(this._switchKey));
+        // X switches polarity, the arrows move
+        state.switchPolarity = this._switchKey !== undefined && Phaser.Input.Keyboard.JustDown(this._switchKey);
 
         return state;
     }

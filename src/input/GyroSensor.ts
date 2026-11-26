@@ -1,5 +1,5 @@
 /**
- * Reads the phone left/right tilt from DeviceOrientationEvent. One instance for the whole page:
+ * Reads the phone left/right tilt and forward/back tilt from DeviceOrientationEvent. One instance for the whole page:
  * the permission and the listener outlive the scenes.
  */
 class GyroSensor {
@@ -7,6 +7,8 @@ class GyroSensor {
     private _hasData: boolean = false;
     private _tiltDeg: number = 0;
     private _neutralDeg: number = 0;
+    private _pitchDeg: number = 0;
+    private _neutralPitchDeg: number = 0;
 
     /** True once the device sent at least one orientation event. Desktops expose the API without data. */
     public get hasData(): boolean {
@@ -16,6 +18,14 @@ class GyroSensor {
     /** Left/right tilt in degrees relative to the calibrated neutral position, positive to the right */
     public get relativeTiltDeg(): number {
         return this._tiltDeg - this._neutralDeg;
+    }
+
+    /**
+     * Forward/back tilt in degrees relative to the calibrated neutral position,
+     * positive when the top of the phone comes toward the player
+     */
+    public get relativePitchDeg(): number {
+        return this._pitchDeg - this._neutralPitchDeg;
     }
 
     public get isSupported(): boolean {
@@ -50,25 +60,30 @@ class GyroSensor {
     /** The current position becomes "no tilt" */
     public calibrate() {
         this._neutralDeg = this._tiltDeg;
+        this._neutralPitchDeg = this._pitchDeg;
     }
 
     private readonly onOrientation = (event: DeviceOrientationEvent) => {
         if (event.gamma === null || event.beta === null)
             return;
 
-        // gamma is the left/right tilt in portrait; the axes swap when the screen is rotated
+        // In portrait gamma is the left/right tilt and beta the forward/back one; they swap when the screen is rotated
         switch (screen.orientation?.angle ?? 0) {
             case 90:
                 this._tiltDeg = event.beta;
+                this._pitchDeg = -event.gamma;
                 break;
             case 180:
                 this._tiltDeg = -event.gamma;
+                this._pitchDeg = -event.beta;
                 break;
             case 270:
                 this._tiltDeg = -event.beta;
+                this._pitchDeg = event.gamma;
                 break;
             default:
                 this._tiltDeg = event.gamma;
+                this._pitchDeg = event.beta;
         }
 
         if (!this._hasData) {

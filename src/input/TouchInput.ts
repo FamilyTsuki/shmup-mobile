@@ -18,7 +18,9 @@ export default class TouchInput implements IInputSource {
     public tapToSwitch: boolean;
     private _pointer: Input.Pointer | null = null;
     private _lastX: number = 0;
+    private _lastY: number = 0;
     private _pendingDragX: number = 0;
+    private _pendingDragY: number = 0;
     private _pendingSwitch: boolean = false;
 
     constructor(scene: Scene, tapToSwitch: boolean = false) {
@@ -38,9 +40,11 @@ export default class TouchInput implements IInputSource {
             this._pointer = null;
 
         state.dragX = this._pendingDragX;
+        state.dragY = this._pendingDragY;
         state.fire = this._pointer !== null;
         state.switchPolarity = this._pendingSwitch;
         this._pendingDragX = 0;
+        this._pendingDragY = 0;
         this._pendingSwitch = false;
 
         return state;
@@ -75,6 +79,7 @@ export default class TouchInput implements IInputSource {
 
         this._pointer = pointer;
         this._lastX = pointer.x;
+        this._lastY = pointer.y;
     }
 
     private onPointerMove(pointer: Input.Pointer) {
@@ -82,7 +87,9 @@ export default class TouchInput implements IInputSource {
             return;
 
         this._pendingDragX += pointer.x - this._lastX;
+        this._pendingDragY += pointer.y - this._lastY;
         this._lastX = pointer.x;
+        this._lastY = pointer.y;
     }
 
     private onPointerUp(pointer: Input.Pointer) {

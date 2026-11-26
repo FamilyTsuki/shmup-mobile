@@ -33,6 +33,7 @@ export type NetInput = {
     /** Guest clock when sent, to replay its moves smoothly on the host */
     t: number;
     x: number;
+    y: number;
     fire: boolean;
     /** Number of polarity switch requests since the last message */
     switches: number;

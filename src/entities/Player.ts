@@ -320,17 +320,25 @@ export default class Player extends Entity {
 
         const inputState = this._input.poll();
 
+        // _baseY is where the ship is; a ghost is drawn bobbing around it
         if (inputState.absoluteX !== undefined) {
             this.x = inputState.absoluteX;
+            this._baseY = inputState.absoluteY ?? this._baseY;
         } else if (inputState.rotate !== 0) {
             this.angle += inputState.rotate * this._playerShipData.movementSpeed * deltaTime;
         } else {
             this.getComponent(Movement)?.moveHorizontally(this, inputState.moveX * deltaTime);
+            this._baseY += inputState.moveY * this._playerShipData.movementSpeed * deltaTime;
         }
         this.x += inputState.dragX;
+        this._baseY += inputState.dragY;
 
-        // Stop player from going offscreen
-        this.x = Phaser.Math.Clamp(this.x, this.displayWidth / 2, this.scene.cameras.main.width - this.displayWidth / 2);
+        // Stop player from going offscreen, or over the HUD controls and the enemies' half
+        const camera = this.scene.cameras.main;
+        const bounds = GameConstants.playerYBounds(camera.height);
+        this.x = Phaser.Math.Clamp(this.x, this.displayWidth / 2, camera.width - this.displayWidth / 2);
+        this._baseY = Phaser.Math.Clamp(this._baseY, bounds.min, bounds.max);
+        this.y = this._baseY;
         this._shieldSprite.setPosition(this.x, this.y);
         this._aura.setPosition(this.x, this.y);
 

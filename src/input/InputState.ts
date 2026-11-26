@@ -6,6 +6,10 @@ export type InputState = {
     moveX: number;
     /** Direct horizontal displacement in game pixels since the last poll (finger drag) */
     dragX: number;
+    /** Analog vertical axis in [-1, 1], negative goes forward (up the screen) */
+    moveY: number;
+    /** Direct vertical displacement in game pixels since the last poll */
+    dragY: number;
     /** Rotation axis in [-1, 1] */
     rotate: number;
     fire: boolean;
@@ -13,6 +17,7 @@ export type InputState = {
     switchPolarity: boolean;
     /** Coop guest: the guest moved its ship itself, this is where it is. Overrides the other axes */
     absoluteX?: number;
+    absoluteY?: number;
 };
 
 export interface IInputSource {
@@ -21,5 +26,5 @@ export interface IInputSource {
 }
 
 export function emptyInputState(): InputState {
-    return {moveX: 0, dragX: 0, rotate: 0, fire: false, switchPolarity: false};
+    return {moveX: 0, dragX: 0, moveY: 0, dragY: 0, rotate: 0, fire: false, switchPolarity: false};
 }

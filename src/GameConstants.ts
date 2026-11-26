@@ -47,4 +47,16 @@ export default class GameConstants {
     public static readonly PLAYER_Y_FROM_BOTTOM: number = 400;
     /** Height of the bottom strip holding the polarity gauge and the bomb button */
     public static readonly HUD_STRIP_HEIGHT: number = 250;
+    /** Highest the ship can go, as a share of the screen height: the top half belongs to the enemies */
+    private static readonly PLAYER_MIN_Y_RATIO: number = 0.45;
+    /** Gap kept between the ship center and the control strip */
+    private static readonly PLAYER_STRIP_MARGIN: number = 80;
+
+    /** Vertical range of the ship center */
+    public static playerYBounds(screenHeight: number): { min: number, max: number } {
+        return {
+            min: screenHeight * GameConstants.PLAYER_MIN_Y_RATIO,
+            max: screenHeight - GameConstants.HUD_STRIP_HEIGHT - GameConstants.PLAYER_STRIP_MARGIN,
+        };
+    }
 }

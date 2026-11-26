@@ -50,6 +50,7 @@ export default class RemoteGameScene extends Scene {
     private _labels: Map<number, GameObjects.Text> = new Map();
     private _timeline: Timeline<BufferedSnapshot> = new Timeline(RemoteGameScene.SNAPSHOT_INTERVAL_MS);
     private _localX: number | null = null;
+    private _localY: number = 0;
     private _shipSpeed: number = 0.6;
     private _switches: number = 0;
     private _fire: boolean = false;
@@ -162,8 +163,11 @@ export default class RemoteGameScene extends Scene {
             registry.set(RegistryConstants.Keys.LIVES, me.lives);
             registry.set(RegistryConstants.Keys.RESONANCE, me.resonance);
             registry.set(RegistryConstants.Keys.POLARITY, me.polarity);
-            if (this._localX === null)
-                this._localX = snapshot.objects.find(object => object[0] === me.objects[0])?.[2] ?? this.scale.width / 2;
+            if (this._localX === null) {
+                const ship = snapshot.objects.find(object => object[0] === me.objects[0]);
+                this._localX = ship?.[2] ?? this.scale.width / 2;
+                this._localY = ship?.[3] ?? this.scale.height - GameConstants.PLAYER_Y_FROM_BOTTOM;
+            }
         }
     }
 
@@ -242,6 +246,9 @@ export default class RemoteGameScene extends Scene {
         this._localX += state.moveX * this._shipSpeed * deltaTime + state.dragX;
         this._localX = Phaser.Math.Clamp(this._localX, RemoteGameScene.SHIP_HALF_WIDTH,
             this.scale.width - RemoteGameScene.SHIP_HALF_WIDTH);
+        const bounds = GameConstants.playerYBounds(this.scale.height);
+        this._localY = Phaser.Math.Clamp(this._localY + state.moveY * this._shipSpeed * deltaTime + state.dragY,
+            bounds.min, bounds.max);
     }
 
     private sendInput(deltaTime: number) {
@@ -249,7 +256,7 @@ export default class RemoteGameScene extends Scene {
         if (!Timeline.due(this._sinceInput, NetworkInput.SEND_INTERVAL_MS) || this._localX === null)
             return;
         this._sinceInput = Math.max(0, this._sinceInput - NetworkInput.SEND_INTERVAL_MS);
-        Net.sendToHost({k: 'input', s: {t: Math.round(performance.now()), x: Math.round(this._localX), fire: this._fire,
+        Net.sendToHost({k: 'input', s: {t: Math.round(performance.now()), x: Math.round(this._localX), y: Math.round(this._localY), fire: this._fire,
             switches: this._switches}});
         this._switches = 0;
     }
@@ -278,13 +285,13 @@ export default class RemoteGameScene extends Scene {
             if (!sprite)
                 return;
 
-            const x = ownObjects.has(id) && this._localX !== null
-                ? this._localX
-                : Phaser.Math.Linear(previous[2], object[2], blend);
+            const own = ownObjects.has(id) && this._localX !== null;
+            const x = own ? this._localX! : Phaser.Math.Linear(previous[2], object[2], blend);
+            const y = own ? this._localY : Phaser.Math.Linear(previous[3], object[3], blend);
             // Shortest way around the circle
             const fromAngle = previous[4] / 100;
             const rotation = fromAngle + Phaser.Math.Angle.Wrap(object[4] / 100 - fromAngle) * blend;
-            sprite.setPosition(x, Phaser.Math.Linear(previous[3], object[3], blend))
+            sprite.setPosition(x, y)
                 .setRotation(rotation)
                 .setScale(object[5] / 100, object[6] / 100)
                 .setAlpha(object[7] / 100 * (otherObjects.has(id) ? otherAlpha : 1))

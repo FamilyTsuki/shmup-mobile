@@ -43,12 +43,15 @@ export default class LocalInput implements IInputSource {
             const state = source.poll();
             merged.moveX += state.moveX;
             merged.dragX += state.dragX;
+            merged.moveY += state.moveY;
+            merged.dragY += state.dragY;
             merged.rotate += state.rotate;
             merged.fire ||= state.fire;
             merged.switchPolarity ||= state.switchPolarity;
         }
 
         merged.moveX = Phaser.Math.Clamp(merged.moveX, -1, 1);
+        merged.moveY = Phaser.Math.Clamp(merged.moveY, -1, 1);
         merged.rotate = Phaser.Math.Clamp(merged.rotate, -1, 1);
 
         return merged;

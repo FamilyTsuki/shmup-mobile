@@ -26,6 +26,7 @@ export default class NetworkInput implements IInputSource {
             return state;
 
         state.absoluteX = Phaser.Math.Linear(sample.older.x, sample.newer.x, sample.blend);
+        state.absoluteY = Phaser.Math.Linear(sample.older.y, sample.newer.y, sample.blend);
         // Firing and switching follow the latest message: no reason to delay them
         state.fire = latest.fire;
         // One switch per frame: two quick taps still give two switches, on two frames

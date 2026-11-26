@@ -30,7 +30,8 @@ Branche de travail : `mobile-game` (créée depuis `eval`, qui reste intacte).
 ## Phase 2b — Game jam : identité ION // PLASMA
 - [x] Mécanique de polarité (`polarity.json`) : tout est ION (cyan) ou PLASMA (magenta). Tirs de sa couleur absorbés → jauge de Résonance ; tirs opposés = dégâts ; tirs du joueur ×2 sur la polarité opposée.
 - [x] Bascule : changer de polarité avec la jauge ≥ seuil convertit les balles ennemies proches en tirs du joueur dirigés vers les ennemis, et blesse les ennemis dans le rayon.
-- [x] Contrôles : 2e doigt, tap rapide, bouton-jauge du HUD, X / ↑ au clavier ; en mode gyro, tout tap bascule.
+- [x] Contrôles : 2e doigt, tap rapide, bouton-jauge du HUD, X au clavier ; en mode gyro, tout tap bascule.
+- [x] Déplacement avant/arrière (moitié basse de l'écran, au-dessus de la bande de commandes) : ↑/↓, glisser vertical, gyroscope penché avant/arrière ; synchronisé en coop.
 - [x] Polarité dans les données : par groupe de vague (`ion`/`plasma`/`alternate`/`random`), par phase de boss (+ cycle), par pattern (`alternate` = à chaque tir).
 - [x] Niveau 1 tutoriel (astuces par vague), boss : barre à la couleur de la coque + « FAIBLE AU … ».
 - [x] Direction artistique pixel art générée en code (`TextureFactory`) : sprites dessinés en grilles, boss dessinés en basse résolution + contour auto, palette douce, balles ION = anneaux creux / PLASMA = pleines (lisible sans couleur). Police Press Start 2P (OFL). Atlas Kenney plus utilisé.
