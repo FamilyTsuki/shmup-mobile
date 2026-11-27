@@ -50,6 +50,13 @@ export function buildEndlessStage(data: EndlessData, stage: number): LevelData {
     for (let i = 0; i < waveCount; i++)
         waves.push(buildWave(data, stage, i));
 
+    // First stage: the same lessons as level 1, for players who start with the endless mode
+    if (stage === 1) {
+        waves[0] = {...waves[0], waitFor: 'move', hint: 'Les tirs de TA couleur\nsont absorbés'};
+        if (waves.length > 1)
+            waves[1] = {...waves[1], waitFor: 'switch', hint: 'Bravo ! Change de couleur\npour absorber leurs tirs'};
+    }
+
     return {
         name: `Etape ${stage}`,
         difficulty: data.difficultyStart + data.difficultyPerStage * (stage - 1),
