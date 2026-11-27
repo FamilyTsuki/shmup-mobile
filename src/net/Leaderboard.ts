@@ -1,3 +1,5 @@
+import Server from "./Server.ts";
+
 /** One line of the leaderboard: the best run of a nickname */
 export type ScoreEntry = {
     name: string;
@@ -17,7 +19,7 @@ export type SubmitResult = {
  * when the server cannot be reached, so the game goes on offline.
  */
 export default class Leaderboard {
-    private static readonly URL: string = './api/scores';
+    private static readonly URL: string = Server.http('/api/scores');
     private static readonly TIMEOUT_MS: number = 5000;
 
     public static async top(limit: number): Promise<ScoreEntry[] | null> {

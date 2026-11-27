@@ -19,6 +19,7 @@
         "dev-nolog": "vite --config vite/config.dev.mjs",
         "dev-mobile": "vite --config vite/config.dev.mjs --mode mobile",
         "build-nolog": "vite build --config vite/config.prod.mjs",
+        "build-itch": "vite build --config vite/config.prod.mjs --mode itch && rm -f flipcharge-itch.zip && cd dist && zip -qr ../flipcharge-itch.zip .",
         "atlas": "node tools/pack-atlas.mts",
         "server": "node server/index.mjs",
         "dev-coop": "node server/index.mjs & vite --config vite/config.dev.mjs --mode mobile",

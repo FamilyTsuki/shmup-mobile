@@ -5,6 +5,7 @@ import Button from "../ui/Button.ts";
 import Backdrop from "../effects/Backdrop.ts";
 import UiStyle from "../ui/UiStyle.ts";
 import Leaderboard, {ScoreEntry} from "../net/Leaderboard.ts";
+import Server from "../net/Server.ts";
 
 /**
  * Screen for the projector: a QR code that opens the game on a phone, straight to the nickname then the endless
@@ -33,7 +34,7 @@ export default class BoardScene extends Scene {
 
     /** Link of the QR code: this page, with the jam parameter */
     public static joinUrl(): string {
-        return `${location.origin}${location.pathname}?${BoardScene.JAM_PARAM}`;
+        return `${Server.pageUrl()}?${BoardScene.JAM_PARAM}`;
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -45,7 +46,7 @@ export default class BoardScene extends Scene {
         this.createQrTexture();
         this.add.image(centerX, 460, BoardScene.QR_TEXTURE).setDisplaySize(BoardScene.QR_SIZE, BoardScene.QR_SIZE);
         this.add.text(centerX, 780, 'SCANNE ET JOUE !', UiStyle.text(56, '#ffd166', '#ffb347')).setOrigin(0.5);
-        this.add.text(centerX, 860, location.host, UiStyle.body(36, '#ffffff')).setOrigin(0.5);
+        this.add.text(centerX, 860, new URL(Server.pageUrl()).host,UiStyle.body(36, '#ffffff')).setOrigin(0.5);
 
         this._rows = [];
         for (let i = 0; i < BoardScene.ROW_COUNT; i++) {

@@ -93,8 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
         (window as unknown as { game: Game }).game = game;
 });
 
-// Installable and playable offline. Skipped in dev so the service worker never serves stale modules.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+// Installable and playable offline. Skipped in dev so the service worker never serves stale modules,
+// and on itch.io (VITE_SERVER_URL set) where the game runs in an iframe of their domain.
+if (import.meta.env.PROD && !import.meta.env.VITE_SERVER_URL && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch((error) => console.error('Service worker registration failed', error));
     });

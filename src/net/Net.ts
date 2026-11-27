@@ -1,5 +1,6 @@
 import type {GuestMessage, HostMessage, LobbyPlayer} from "./Protocol.ts";
 import type {PlayerStats} from "../gameData/UpgradeData.ts";
+import Server from "./Server.ts";
 
 export type NetRole = 'host' | 'guest';
 
@@ -71,9 +72,8 @@ class Net extends Phaser.Events.EventEmitter {
         if (this._connecting)
             return this._connecting;
 
-        const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
         this._connecting = new Promise<void>((resolve, reject) => {
-            const socket = new WebSocket(`${protocol}://${location.host}/ws`);
+            const socket = new WebSocket(Server.ws('/ws'));
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data) as ServerMessage;
                 if (message.t === 'welcome') {

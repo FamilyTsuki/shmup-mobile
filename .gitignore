@@ -28,3 +28,6 @@ data
 
 # Screenshots and recordings of the game
 captures
+
+# itch.io upload (npm run build-itch)
+*.zip

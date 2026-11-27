@@ -31,6 +31,16 @@ const MIME = {
 const server = createServer(async (request, response) => {
     try {
         const url = new URL(request.url ?? '/', 'http://localhost');
+        // The itch.io build calls the API from another domain: allow it, and answer the CORS preflight of the POST
+        if (url.pathname.startsWith('/api/')) {
+            response.setHeader('Access-Control-Allow-Origin', '*');
+            response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+            if (request.method === 'OPTIONS') {
+                response.writeHead(204).end();
+                return;
+            }
+        }
         if (await handleScores(request, response, url))
             return;
 
