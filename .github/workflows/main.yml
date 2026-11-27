@@ -25,8 +25,9 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      # itch mode (.env.itch): coop and leaderboard go to our server, the game runs in the itch.io iframe
       - name: Run build
-        run: npm run build-nolog
+        run: npx vite build --config vite/config.prod.mjs --mode itch
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4.6.1
@@ -45,11 +46,13 @@ jobs:
           name: game-build
           path: dist/
 
+      # Repository settings: secret BUTLER_CREDENTIALS (itch.io API key), variables ITCH_USER and ITCH_GAME
+      # (https://ITCH_USER.itch.io/ITCH_GAME)
       - name: Upload to itch.io
         uses: rthery/butler-publish-itchio-action@v1.1.1
         env:
           BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
           CHANNEL: html5
-          ITCH_GAME: ${{ github.event.repository.name }}
-          ITCH_USER: surmoi
+          ITCH_GAME: ${{ vars.ITCH_GAME }}
+          ITCH_USER: ${{ vars.ITCH_USER }}
           PACKAGE: dist/
