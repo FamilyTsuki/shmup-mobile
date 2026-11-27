@@ -12,6 +12,7 @@ import Movement from "../components/Movement.ts";
 import SpreadWeapon from "../components/SpreadWeapon.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 import GameConstants from "../GameConstants.ts";
+import CeaseFire from "../managers/CeaseFire.ts";
 
 export default class Player extends Entity {
     /** (player: Player) emitted on the scene events when the player loses health (not when a shield absorbs the hit) */
@@ -367,6 +368,8 @@ export default class Player extends Entity {
     }
 
     private tryShoot(now: number) {
+        if (CeaseFire.isActive(this.scene))
+            return;
         const rapidFire = now < this._rapidFireUntil;
         const fireDelay = this._stats.fireDelayMs / (rapidFire ? this._powerUps.rapidFire.fireRateMultiplier : 1);
         if (now - this._lastShotTime < fireDelay)

@@ -1,6 +1,6 @@
 import {Events, Scene} from "phaser";
 import EntityManager from "./EntityManager.ts";
-import type {LevelData, SpawnGroupData} from "../gameData/LevelData.ts";
+import type {LevelData, SpawnGroupData, TutorialAction} from "../gameData/LevelData.ts";
 import {resolvePolarity} from "../gameData/PolarityData.ts";
 
 /**
@@ -8,11 +8,15 @@ import {resolvePolarity} from "../gameData/PolarityData.ts";
  * current one is spawned and gone (killed or off screen).
  */
 export default class WaveManager extends Events.EventEmitter {
-    /** (waveIndex: number, waveCount: number, hint: string | undefined) */
+    /** (waveIndex: number, waveCount: number, hint: string | undefined, waitFor: TutorialAction | undefined) */
     public static readonly WAVE_STARTED_EVENT: string = 'waveStarted';
+    /** (action: TutorialAction, hint: string | undefined) the player did what a tutorial wave waited for */
+    public static readonly ACTION_DONE_EVENT: string = 'actionDone';
     public static readonly ALL_WAVES_CLEARED_EVENT: string = 'allWavesCleared';
 
     private static readonly BREAK_BETWEEN_WAVES_MS: number = 1800;
+    /** A tutorial wave never waits forever: it starts anyway after this */
+    private static readonly MAX_ACTION_WAIT_MS: number = 20000;
     private static readonly SCREEN_MARGIN: number = 120;
     private static readonly V_SPACING_X: number = 130;
     private static readonly V_SPACING_Y: number = 110;
@@ -23,6 +27,9 @@ export default class WaveManager extends Events.EventEmitter {
     private _waveIndex: number = -1;
     private _pendingSpawns: number = 0;
     private _waveRunning: boolean = false;
+    private _waitingFor: TutorialAction | null = null;
+    private _releaseWave: (() => void) | null = null;
+    private _waitTimer: Phaser.Time.TimerEvent | null = null;
 
     constructor(scene: Scene, entityManager: EntityManager, level: LevelData) {
         super();
@@ -55,9 +62,44 @@ export default class WaveManager extends Events.EventEmitter {
 
         const wave = this._level.waves[index];
         this._pendingSpawns = wave.groups.reduce((total, group) => total + group.count, 0);
-        wave.groups.forEach(group => this._scene.time.delayedCall(group.delayMs ?? 0, () => this.spawnGroup(group)));
+        const spawnGroups = () => wave.groups.forEach(group =>
+            this._scene.time.delayedCall(group.delayMs ?? 0, () => this.spawnGroup(group)));
 
-        this.emit(WaveManager.WAVE_STARTED_EVENT, index, this._level.waves.length, wave.hint);
+        this.emit(WaveManager.WAVE_STARTED_EVENT, index, this._level.waves.length, wave.hint, wave.waitFor);
+        if (!wave.waitFor) {
+            spawnGroups();
+            return;
+        }
+
+        // Pending spawns keep the wave running: it cannot end before the action
+        this._waitingFor = wave.waitFor;
+        this._releaseWave = () => {
+            spawnGroups();
+            this.emit(WaveManager.ACTION_DONE_EVENT, wave.waitFor, wave.hint);
+        };
+        this._waitTimer = this._scene.time.delayedCall(WaveManager.MAX_ACTION_WAIT_MS, () => this.release());
+    }
+
+    /** What the current tutorial wave waits for, if any */
+    public get waitingFor(): TutorialAction | null {
+        return this._waitingFor;
+    }
+
+    /** The player did something: starts the tutorial wave waiting for it */
+    public notifyAction(action: TutorialAction) {
+        if (action === this._waitingFor)
+            this.release();
+    }
+
+    private release() {
+        if (!this._waitingFor)
+            return;
+        this._waitingFor = null;
+        this._waitTimer?.remove();
+        this._waitTimer = null;
+        const releaseWave = this._releaseWave;
+        this._releaseWave = null;
+        releaseWave?.();
     }
 
     private spawnGroup(group: SpawnGroupData) {

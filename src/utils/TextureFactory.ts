@@ -42,7 +42,7 @@ type ShadeSet = { dark: string, mid: string, light: string };
 type PickupStyle = { color: string, symbol: string };
 
 export type IconName = 'back' | 'next' | 'play' | 'replay' | 'home' | 'shop' | 'trophy' | 'gear' | 'soundOn' | 'soundOff'
-    | 'exit' | 'target';
+    | 'exit' | 'target' | 'menu';
 
 /**
  * Draws every texture of the game once, in one retro pixel art style: a soft limited palette,
@@ -229,6 +229,19 @@ export default class TextureFactory {
             '...w..w..w...',
             '....wwwww....',
             '......w......',
+        ],
+        // Three bars: the universal "menu" sign, unlike "II" which reads as 11
+        menu: [
+            'wwwwwwwwwww',
+            'wwwwwwwwwww',
+            '...........',
+            '...........',
+            'wwwwwwwwwww',
+            'wwwwwwwwwww',
+            '...........',
+            '...........',
+            'wwwwwwwwwww',
+            'wwwwwwwwwww',
         ],
     };
 

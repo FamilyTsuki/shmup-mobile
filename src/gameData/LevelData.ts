@@ -20,10 +20,15 @@ export type SpawnGroupData = {
     polarity?: PolarityRule;
 };
 
+/** Something the player must do before a tutorial wave spawns its enemies */
+export type TutorialAction = 'move' | 'switch';
+
 export type WaveData = {
     groups: SpawnGroupData[];
-    /** Shown with the wave banner, to teach a mechanic */
+    /** Shown with the wave banner, to teach a mechanic; after the action when waitFor is set */
     hint?: string;
+    /** The wave waits (a prompt on screen) until the player does this, so the lesson cannot be missed */
+    waitFor?: TutorialAction;
 };
 
 export type LevelData = {

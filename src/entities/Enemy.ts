@@ -8,6 +8,7 @@ import {BulletData, toBulletData} from "../gameData/BulletData.ts";
 import {bulletSpeedFactor, EnemyData} from "../gameData/EnemyData.ts";
 import type {Polarity} from "../gameData/PolarityData.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
+import CeaseFire from "../managers/CeaseFire.ts";
 
 /**
  * Every enemy type is this class configured by an entry of enemies.json. The polarity is chosen at each spawn.
@@ -207,7 +208,7 @@ export default class Enemy extends Entity {
 
     /** Swells before firing: the shot is readable, and the player has time to pick the right polarity */
     private shoot() {
-        if (this.scared)
+        if (this.scared || CeaseFire.isActive(this.scene))
             return;
         if (this._data.telegraphMs <= 0) {
             this.fire();

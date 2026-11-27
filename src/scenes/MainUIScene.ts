@@ -20,6 +20,8 @@ export default class MainUIScene extends Scene {
     private _scoreText: GameObjects.Text;
     private _bannerText: GameObjects.Text;
     private _hintText: GameObjects.Text;
+    /** Bouncing arrow over the gauge, while a lesson asks to tap it */
+    private _gaugePointer: GameObjects.Graphics;
     private _comboText: GameObjects.Text;
     private _creditsText: GameObjects.Text;
     private _bombButton: Button;
@@ -86,15 +88,18 @@ export default class MainUIScene extends Scene {
         this._scoreText = this.add.text(width - 64, 64, this.formatScore(score),
             UiStyle.text(76, '#ffffff', UiStyle.CHROME_CSS)).setOrigin(1, 0);
 
-        new Button(this, width / 2, 110, 'II',
+        Button.icon(this, width / 2, 110, 'menu',
             () => this.game.events.emit(GameConstants.Events.PAUSE_REQUESTED_EVENT),
-            {width: 120, height: 120, fontSize: 48, fillColor: UiStyle.PANEL}).setAlpha(0.75);
+            {width: 120, height: 120, fontSize: 0, fillColor: UiStyle.PANEL}).setAlpha(0.75);
 
         this._bannerText = this.add.text(width / 2, height * 0.36, '',
             {...UiStyle.text(88, '#ffffff', UiStyle.CHROME_CSS), align: 'center'})
             .setOrigin(0.5).setAlpha(0);
-        this._hintText = this.add.text(width / 2, height * 0.36 + 170, '',
-            {...UiStyle.text(46, '#ffe7a3', '#ffb347'), align: 'center'})
+        // Dark backing and wrapping: readable over the action, never wider than the screen
+        this._hintText = this.add.text(width / 2, height * 0.36 + 200, '',
+            {...UiStyle.text(48, '#ffe7a3', '#ffb347'), align: 'center', lineSpacing: 16,
+                backgroundColor: '#0b0915cc', padding: {x: 28, y: 22},
+                wordWrap: {width: width - 120, useAdvancedWrap: true}})
             .setOrigin(0.5).setAlpha(0);
 
         this._creditsText = this.add.text(width - 64, 160, '$ 0', UiStyle.text(44, '#ffd166', '#ffb347')).setOrigin(1, 0);
@@ -113,6 +118,12 @@ export default class MainUIScene extends Scene {
 
         this._burstMinCharge = (this.cache.json.get(GameConstants.DataKeys.POLARITY) as PolarityData).burst.minCharge;
         this.createGauge(130, controlsY);
+        this._gaugePointer = this.add.graphics({x: 130, y: controlsY - MainUIScene.GAUGE_RADIUS - 40})
+            .fillStyle(0xffe7a3).fillTriangle(-40, -60, 40, -60, 0, 0)
+            .lineStyle(6, 0x0b0915).strokeTriangle(-40, -60, 40, -60, 0, 0)
+            .setVisible(false);
+        this.tweens.add({targets: this._gaugePointer, y: this._gaugePointer.y - 30, duration: 350, yoyo: true,
+            repeat: -1, ease: 'Sine.easeInOut'});
         this.createBossBar();
         this.createDialogueBox();
         this._sfx = new Sfx(this.sound);
@@ -286,14 +297,25 @@ export default class MainUIScene extends Scene {
         }));
     }
 
-    private showHint(text: string) {
+    /**
+     * @param sticky stays until the next hint (a lesson waiting for the player), pulsing to catch the eye
+     * @param target 'gauge' points an arrow at the polarity gauge
+     */
+    private showHint(text: string, sticky: boolean = false, target: string = '') {
         this.tweens.killTweensOf(this._hintText);
-        this._hintText.setText(UiStyle.plainCapitals(text)).setAlpha(0);
+        this._hintText.setText(UiStyle.plainCapitals(text)).setAlpha(0).setScale(1);
+        this._gaugePointer.setVisible(target === 'gauge');
+        if (sticky) {
+            this._hintText.setAlpha(1);
+            this.tweens.add({targets: this._hintText, scale: 1.06, duration: 450, yoyo: true, repeat: -1,
+                ease: 'Sine.easeInOut'});
+            return;
+        }
         this.tweens.chain({
             targets: this._hintText,
             tweens: [
-                {alpha: 1, duration: 300, delay: 400},
-                {alpha: 0, duration: 500, delay: 3200}
+                {alpha: 1, duration: 250},
+                {alpha: 0, duration: 500, delay: 4000}
             ]
         });
     }

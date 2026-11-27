@@ -2,27 +2,29 @@
     "levels": [
         {
             "name": "Orbite basse",
-            "difficulty": 1.38,
+            "difficulty": 1.0,
             "boss": "mothership",
             "waves": [
                 {
                     "hint": "Les tirs de TA couleur\nsont absorbés",
+                    "waitFor": "move",
                     "groups": [
                         {
                             "enemy": "scout",
-                            "count": 5,
+                            "count": 4,
                             "formation": "random",
-                            "intervalMs": 900,
+                            "intervalMs": 1100,
                             "polarity": "ion"
                         }
                     ]
                 },
                 {
-                    "hint": "Change de couleur :\n2e doigt, tap rapide ou X",
+                    "hint": "Bravo ! Change de couleur\npour absorber leurs tirs",
+                    "waitFor": "switch",
                     "groups": [
                         {
                             "enemy": "scout",
-                            "count": 5,
+                            "count": 4,
                             "formation": "v",
                             "intervalMs": 0,
                             "polarity": "plasma"
@@ -54,9 +56,9 @@
                     "groups": [
                         {
                             "enemy": "kamikaze",
-                            "count": 5,
+                            "count": 4,
                             "formation": "sides",
-                            "intervalMs": 700,
+                            "intervalMs": 900,
                             "polarity": "ion"
                         }
                     ]
@@ -73,9 +75,9 @@
                         },
                         {
                             "enemy": "kamikaze",
-                            "count": 6,
+                            "count": 4,
                             "formation": "sides",
-                            "intervalMs": 700,
+                            "intervalMs": 900,
                             "delayMs": 1500
                         }
                     ]
@@ -84,7 +86,7 @@
         },
         {
             "name": "Champ de débris",
-            "difficulty": 1.65,
+            "difficulty": 1.4,
             "boss": "orchid",
             "waves": [
                 {

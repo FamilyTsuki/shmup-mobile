@@ -8,6 +8,7 @@ import type {BossData, BossOriginKey, BossPatternData, BossPhaseData, PatternPol
 import {HAZARD_STYLE, oppositePolarity, Polarity, POLARITY_STYLES, resolvePolarity} from "../gameData/PolarityData.ts";
 import TextureFactory from "../utils/TextureFactory.ts";
 import {bulletSpeedFactor} from "../gameData/EnemyData.ts";
+import CeaseFire from "../managers/CeaseFire.ts";
 
 type BossState = 'entering' | 'talking' | 'fighting' | 'dead';
 
@@ -283,7 +284,7 @@ export default class Boss extends Entity {
             delay: pattern.delayMs,
             loop: true,
             callback: () => {
-                if (this._state !== 'fighting')
+                if (this._state !== 'fighting' || CeaseFire.isActive(this.scene))
                     return;
                 fire();
                 shots++;

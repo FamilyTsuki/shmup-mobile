@@ -11,13 +11,14 @@ import SaveManager from "../managers/SaveManager.ts";
 import SaveConstants from "../SaveConstants.ts";
 import EntityManager from "../managers/EntityManager.ts";
 import WaveManager from "../managers/WaveManager.ts";
+import CeaseFire from "../managers/CeaseFire.ts";
 import ScoreManager from "../managers/ScoreManager.ts";
 import Progress from "../managers/Progress.ts";
 import GameConstants from "../GameConstants.ts";
 import LocalInput from "../input/LocalInput.ts";
 import GyroSensor from "../input/GyroSensor.ts";
 import Settings from "../managers/Settings.ts";
-import type {LevelData, LevelsData} from "../gameData/LevelData.ts";
+import type {LevelData, LevelsData, TutorialAction} from "../gameData/LevelData.ts";
 import type {PowerUpsData, PowerUpType} from "../gameData/PowerUpData.ts";
 import type {PlayerShipsData} from "../gameData/PlayerShipsData.ts";
 import {computePlayerStats, UpgradesData} from "../gameData/UpgradeData.ts";
@@ -74,6 +75,11 @@ export default class MainGameScene extends Scene {
     };
     private static readonly BOSS_WARNING_MS: number = 2500;
     private static readonly DIFFICULTY_PER_EXTRA_PLAYER: number = 0.5;
+    /** Nobody fires while these messages are on screen (see the HUD tweens) */
+    private static readonly BANNER_CEASE_FIRE_MS: number = 1900;
+    private static readonly HINT_CEASE_FIRE_MS: number = 3000;
+    /** Distance a ship must travel to pass the "move" lesson */
+    private static readonly TUTORIAL_MOVE_PX: number = 150;
 
     private _backdrop: Backdrop;
     private _wash: GameObjects.Rectangle;
@@ -100,6 +106,8 @@ export default class MainGameScene extends Scene {
     private _difficulty: number = 1;
     /** Endless mode: the run so far, null for a level of levels.json */
     private _endless: EndlessRun | null = null;
+    /** Where the ships were when a "move" lesson started */
+    private _moveOrigins: { x: number, y: number }[] = [];
 
     constructor() {
         super(GameConstants.SceneKeys.MAIN_GAME);
@@ -123,6 +131,7 @@ export default class MainGameScene extends Scene {
         this._powerUps = this.cache.json.get(GameConstants.DataKeys.POWER_UPS) as PowerUpsData;
         this._scoreManager = new ScoreManager(this);
         this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, -1);
+        CeaseFire.reset(this);
         // Endless mode: the score and kills go on from the previous stage
         if (this._endless) {
             this.registry.set(RegistryConstants.Keys.PLAYER_SCORE, this._endless.score);
@@ -200,10 +209,17 @@ export default class MainGameScene extends Scene {
         this.events.on(Boss.SPEAK_EVENT, this.onBossSpeak, this);
 
         this._waveManager = new WaveManager(this, this.entityManager, {...this._level, difficulty: this._difficulty});
-        this._waveManager.on(WaveManager.WAVE_STARTED_EVENT, (index: number, count: number, hint?: string) => {
-            this.showBanner(this._endless ? `VAGUE ${index + 1}` : `VAGUE ${index + 1}/${count}`);
-            if (hint)
-                this.hud('hint', [hint]);
+        this._waveManager.on(WaveManager.WAVE_STARTED_EVENT,
+            (index: number, count: number, hint?: string, waitFor?: TutorialAction) => {
+                this.showBanner(this._endless ? `VAGUE ${index + 1}` : `VAGUE ${index + 1}/${count}`);
+                if (waitFor)
+                    this.startLesson(waitFor);
+                else if (hint)
+                    this.showHint(hint);
+            });
+        this._waveManager.on(WaveManager.ACTION_DONE_EVENT, (_: TutorialAction, hint?: string) => {
+            this._sfx.coin();
+            this.showHint(hint ?? 'BIEN JOUE !');
         });
         this._waveManager.on(WaveManager.ALL_WAVES_CLEARED_EVENT, () => {
             this.showBanner('ALERTE\nBOSS EN APPROCHE');
@@ -277,12 +293,15 @@ export default class MainGameScene extends Scene {
         this.allowIntroSkip(boss, this._level.boss);
         this.registry.set(RegistryConstants.Keys.BOSS_NAME, boss.bossData.name);
         this.registry.set(RegistryConstants.Keys.BOSS_POLARITY, boss.polarity);
-        this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, 1);
+        // No health bar while it talks: it cannot be hurt yet
+        this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, -1);
 
         boss.getComponent(Health)?.on(Health.CHANGE_EVENT, () => {
             this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, boss.healthRatio);
         });
         this.events.on(Boss.PHASE_CHANGED_EVENT, (phaseIndex: number) => {
+            if (phaseIndex === 0)
+                this.registry.set(RegistryConstants.Keys.BOSS_HEALTH, boss.healthRatio);
             if (phaseIndex > 0) {
                 this.showBanner(`PHASE ${phaseIndex + 1}`);
                 this.camera('shake', [300, 0.015]);
@@ -344,6 +363,7 @@ export default class MainGameScene extends Scene {
      * that turns nearby enemy bullets into player shots.
      */
     private onPolaritySwitch(polarity: Polarity, releasedCharge: number, player: Player) {
+        this._waveManager.notifyAction('switch');
         const style = POLARITY_STYLES[polarity];
         const local = player === this._player;
         if (local) {
@@ -399,6 +419,7 @@ export default class MainGameScene extends Scene {
     }
 
     private onBossSpeak(speaker: string, lines: string[], lineMs: number) {
+        CeaseFire.hold(this, lines.length * lineMs);
         this.hud('dialogue', [speaker, lines, lineMs, this._boss?.isTalking === true && this._introSkippable,
             this.dialogueY()]);
     }
@@ -421,19 +442,19 @@ export default class MainGameScene extends Scene {
      */
     private allowIntroSkip(boss: Boss, bossKey: string) {
         const seen: string[] = this.saveManager.getData(SaveConstants.Keys.SEEN_BOSS_INTROS) ?? [];
-        this._introSkippable = seen.includes(bossKey);
+        // Always skippable: nobody can fire during the intro, waiting through it is no fun
+        this._introSkippable = true;
 
         const skip = () => {
             if (!boss.isTalking)
                 return;
             boss.skipIntro();
+            CeaseFire.release(this);
             // Empty lines close the dialogue box, here and on the guests
             this.hud('dialogue', [boss.bossData.name, [], 0, false]);
         };
-        if (this._introSkippable) {
-            this.input.on(Input.Events.POINTER_DOWN, skip);
-            this.input.keyboard?.on('keydown-ENTER', skip);
-        }
+        this.input.on(Input.Events.POINTER_DOWN, skip);
+        this.input.keyboard?.on('keydown-ENTER', skip);
 
         this.events.once(Boss.PHASE_CHANGED_EVENT, () => {
             this.input.off(Input.Events.POINTER_DOWN, skip);
@@ -472,7 +493,8 @@ export default class MainGameScene extends Scene {
     }
 
     private useBomb() {
-        if (this._ended || !this.scene.isActive() || Number(this.registry.get(RegistryConstants.Keys.BOMBS)) <= 0)
+        if (this._ended || !this.scene.isActive() || Number(this.registry.get(RegistryConstants.Keys.BOMBS)) <= 0
+            || CeaseFire.isActive(this))
             return;
 
         this.registry.inc(RegistryConstants.Keys.BOMBS, -1);
@@ -486,7 +508,50 @@ export default class MainGameScene extends Scene {
     }
 
     private showBanner(text: string) {
+        CeaseFire.hold(this, MainGameScene.BANNER_CEASE_FIRE_MS);
         this.hud('banner', [text]);
+    }
+
+    private showHint(text: string) {
+        CeaseFire.hold(this, MainGameScene.HINT_CEASE_FIRE_MS);
+        this.hud('hint', [text]);
+    }
+
+    /**
+     * A tutorial wave: a prompt stays on screen, fitted to the controls, until the player does the action.
+     * Reading is not enough for most players: doing it once is.
+     */
+    private startLesson(action: TutorialAction) {
+        const controls = navigator.maxTouchPoints === 0 ? 'keyboard' : Settings.getControls(this.saveManager).mode;
+        const prompts: { [a in TutorialAction]: { [c in typeof controls]: string } } = {
+            move: {
+                keyboard: 'DEPLACE-TOI :\nFLECHES DU CLAVIER',
+                touch: 'DEPLACE-TOI :\nGLISSE LE DOIGT',
+                gyro: 'DEPLACE-TOI :\nPENCHE LE TELEPHONE',
+            },
+            switch: {
+                keyboard: 'CHANGE DE COULEUR :\nAPPUIE SUR X',
+                touch: 'CHANGE DE COULEUR :\nTAPE LE ROND\nEN BAS A GAUCHE',
+                gyro: 'CHANGE DE COULEUR :\nTAPE L\'ECRAN',
+            },
+        };
+        if (action === 'move')
+            this._moveOrigins = this.entityManager.players.map(ship => ({x: ship.x, y: ship.y}));
+        // Sticky: stays until the action. The gauge gets an arrow on touch screens
+        this.hud('hint', [prompts[action][controls], true, action === 'switch' && controls !== 'keyboard' ? 'gauge' : '']);
+    }
+
+    /** "move" lesson: done once any ship went far enough */
+    private checkMoveLesson() {
+        if (this._waveManager.waitingFor !== 'move')
+            return;
+        const moved = this.entityManager.players.some((ship, index) => {
+            const origin = this._moveOrigins[index];
+            return origin !== undefined
+                && Phaser.Math.Distance.Between(ship.x, ship.y, origin.x, origin.y) > MainGameScene.TUTORIAL_MOVE_PX;
+        });
+        if (moved)
+            this._waveManager.notifyAction('move');
     }
 
     /** HUD messages, shown on the guests' screens too */
@@ -596,6 +661,7 @@ export default class MainGameScene extends Scene {
     update(_timeSinceLaunch: number, deltaTime: number) {
         this._backdrop.update(deltaTime);
 
+        this.checkMoveLesson();
         this._waveManager.update();
         this._scoreManager.update(this.time.now);
         this._coop?.update(deltaTime);
