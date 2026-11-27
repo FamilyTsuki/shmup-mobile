@@ -145,17 +145,16 @@ export default class HomeScene extends Phaser.Scene {
         });
     }
 
-    /** "ION // PLASMA", each word in its polarity color */
+    /** "FLIPCHARGE": FLIP in the ion color, CHARGE in the plasma color */
     private createTitle(centerX: number, y: number) {
-        const ion = this.add.text(0, 0, 'ION', UiStyle.text(130, POLARITY_STYLES.ion.lightCss, POLARITY_STYLES.ion.css));
-        const slash = this.add.text(0, 0, ' // ', UiStyle.text(100, '#ffffff', UiStyle.CHROME_CSS));
-        const plasma = this.add.text(0, 0, 'PLASMA',
+        const flip = this.add.text(0, 0, 'FLIP', UiStyle.text(130, POLARITY_STYLES.ion.lightCss, POLARITY_STYLES.ion.css));
+        const charge = this.add.text(0, 0, 'CHARGE',
             UiStyle.text(130, POLARITY_STYLES.plasma.lightCss, POLARITY_STYLES.plasma.css));
         // Shrink to fit the screen width with a margin
-        const total = ion.width + slash.width + plasma.width;
+        const total = flip.width + charge.width;
         const scale = Math.min(1, (this.scale.width - 120) / total);
         let x = centerX - total * scale / 2;
-        for (const word of [ion, slash, plasma]) {
+        for (const word of [flip, charge]) {
             word.setOrigin(0, 0.5).setPosition(x, y).setScale(scale);
             x += word.width * scale;
         }

@@ -27,7 +27,7 @@ Branche de travail : `mobile-game` (créée depuis `eval`, qui reste intacte).
 - [x] Audio : SFX synthétisés en WebAudio (explosion, pièce, bonus, coup, bombe, alarme), option son.
 - [ ] Musique de fond (pas d'asset dispo).
 
-## Phase 2b — Game jam : identité ION // PLASMA
+## Phase 2b — Game jam : identité FLIPCHARGE
 - [x] Mécanique de polarité (`polarity.json`) : tout est ION (cyan) ou PLASMA (magenta). Tirs de sa couleur absorbés → jauge de Résonance ; tirs opposés = dégâts ; tirs du joueur ×2 sur la polarité opposée.
 - [x] Bascule : changer de polarité avec la jauge ≥ seuil convertit les balles ennemies proches en tirs du joueur dirigés vers les ennemis, et blesse les ennemis dans le rayon.
 - [x] Contrôles : 2e doigt, tap rapide, bouton-jauge du HUD, X au clavier ; en mode gyro, tout tap bascule.
